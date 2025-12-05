@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Test - GitHub Pages</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Supabase + GitHub Pages Demo</h1>
+
+    <div class="config-section" id="configSection">
+      <h2>Configuration</h2>
+      <p>Enter your Supabase credentials:</p>
+      <div class="form-group">
+        <label for="supabaseUrl">Supabase URL:</label>
+        <input type="text" id="supabaseUrl" placeholder="https://xxxxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label for="supabaseKey">Supabase Anon Key:</label>
+        <input type="text" id="supabaseKey" placeholder="eyJhbGciOiJI...">
+      </div>
+      <button id="saveConfigBtn">Save & Connect</button>
+    </div>
+
+    <div class="app-section" id="appSection" style="display: none;">
+      <div class="status">
+        <span id="connectionStatus">Disconnected</span>
+        <button id="clearConfigBtn" class="btn-small">Reset Config</button>
+      </div>
+
+      <div class="add-item">
+        <h2>Add New Item</h2>
+        <div class="form-group">
+          <input type="text" id="itemName" placeholder="Item name">
+        </div>
+        <div class="form-group">
+          <input type="text" id="itemDescription" placeholder="Description (optional)">
+        </div>
+        <button id="addItemBtn">Add Item</button>
+      </div>
+
+      <div class="items-list">
+        <h2>Items</h2>
+        <div id="itemsContainer">
+          <p class="loading">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
