@@ -217,3 +217,43 @@ CREATE INDEX idx_mortgage_shares_mortgage_id ON mortgage_shares(mortgage_id);
 CREATE TRIGGER update_mortgage_shares_updated_at
   BEFORE UPDATE ON mortgage_shares
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Tabla de solicitudes de amortización anticipada
+-- El prestatario crea solicitudes que el prestamista debe aprobar
+CREATE TABLE amortization_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  mortgage_id UUID REFERENCES mortgages(id) ON DELETE CASCADE NOT NULL,
+  share_id UUID REFERENCES mortgage_shares(id) ON DELETE CASCADE NOT NULL,
+  amount DECIMAL(12, 2) NOT NULL,                                           -- Monto a amortizar
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  requested_by TEXT NOT NULL,                                               -- Email del solicitante
+  reviewed_by TEXT,                                                         -- Email del revisor (prestamista)
+  notes TEXT,                                                               -- Notas opcionales
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  reviewed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Enable Row Level Security for amortization_requests
+ALTER TABLE amortization_requests ENABLE ROW LEVEL SECURITY;
+
+-- Amortization requests: users can view requests of their mortgages
+CREATE POLICY "Users can view amortization requests" ON amortization_requests
+  FOR SELECT TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can insert amortization requests" ON amortization_requests
+  FOR INSERT TO authenticated
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can update amortization requests" ON amortization_requests
+  FOR UPDATE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()))
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can delete amortization requests" ON amortization_requests
+  FOR DELETE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+-- Index for faster queries
+CREATE INDEX idx_amortization_requests_mortgage_id ON amortization_requests(mortgage_id);
+CREATE INDEX idx_amortization_requests_status ON amortization_requests(status);

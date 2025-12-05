@@ -13,6 +13,9 @@ import type {
   MortgageShareInsert,
   MortgageShareUpdate,
   UserRole,
+  AmortizationRequest,
+  AmortizationRequestInsert,
+  AmortizationRequestUpdate,
 } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -338,4 +341,90 @@ export async function removeMortgageShare(id: string): Promise<void> {
 export async function getCurrentUserRole(): Promise<UserRole> {
   const user = await getCurrentUser();
   return user?.email === 'ciro.mora@gmail.com' ? 'lender' : 'borrower';
+}
+
+// Amortization requests functions
+export async function fetchAmortizationRequests(mortgageId: string): Promise<AmortizationRequest[]> {
+  const { data, error } = await supabaseClient
+    .from('amortization_requests')
+    .select('*')
+    .eq('mortgage_id', mortgageId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+  return (data as AmortizationRequest[]) ?? [];
+}
+
+export async function fetchPendingAmortizationRequests(mortgageId: string): Promise<AmortizationRequest[]> {
+  const { data, error } = await supabaseClient
+    .from('amortization_requests')
+    .select('*')
+    .eq('mortgage_id', mortgageId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+  return (data as AmortizationRequest[]) ?? [];
+}
+
+export async function insertAmortizationRequest(request: AmortizationRequestInsert): Promise<AmortizationRequest> {
+  const { data, error } = await supabaseClient
+    .from('amortization_requests')
+    .insert(request)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as AmortizationRequest;
+}
+
+export async function updateAmortizationRequest(id: string, updates: AmortizationRequestUpdate): Promise<AmortizationRequest> {
+  const { data, error } = await supabaseClient
+    .from('amortization_requests')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as AmortizationRequest;
+}
+
+export async function approveAmortizationRequest(
+  requestId: string,
+  shareId: string,
+  currentAmortizedAmount: number,
+  requestAmount: number,
+  reviewerEmail: string
+): Promise<void> {
+  // Update the request status
+  await updateAmortizationRequest(requestId, {
+    status: 'approved',
+    reviewed_by: reviewerEmail,
+    reviewed_at: new Date().toISOString(),
+  });
+
+  // Update the share's amortized amount
+  await updateMortgageShare(shareId, {
+    amortized_amount: currentAmortizedAmount + requestAmount,
+  });
+}
+
+export async function rejectAmortizationRequest(
+  requestId: string,
+  reviewerEmail: string
+): Promise<AmortizationRequest> {
+  return updateAmortizationRequest(requestId, {
+    status: 'rejected',
+    reviewed_by: reviewerEmail,
+    reviewed_at: new Date().toISOString(),
+  });
 }

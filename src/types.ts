@@ -86,3 +86,28 @@ export interface MortgageShare {
 
 export type MortgageShareInsert = Omit<MortgageShare, 'id' | 'created_at' | 'updated_at'>;
 export type MortgageShareUpdate = Partial<Omit<MortgageShareInsert, 'mortgage_id' | 'user_role'>>;
+
+export type AmortizationRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface AmortizationRequest {
+  id: string;
+  mortgage_id: string;
+  share_id: string;
+  amount: number;
+  status: AmortizationRequestStatus;
+  requested_by: string;
+  reviewed_by: string | null;
+  notes: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export type AmortizationRequestInsert = Omit<AmortizationRequest, 'id' | 'created_at' | 'reviewed_at' | 'reviewed_by' | 'status'> & {
+  status?: AmortizationRequestStatus;
+};
+
+export type AmortizationRequestUpdate = {
+  status: AmortizationRequestStatus;
+  reviewed_by: string;
+  reviewed_at: string;
+};

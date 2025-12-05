@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -17,12 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole } from '@/types';
+import type { Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole, AmortizationRequest } from '@/types';
 import {
   simulateEarlyPayoff,
   calculateAmortizationSchedule,
   getScheduleSummary,
 } from '@/lib/amortization';
+import { insertAmortizationRequest, getCurrentUser } from '@/supabase';
 import { t } from '@/i18n';
 
 interface EarlyPayoffSimulatorProps {
@@ -32,6 +34,8 @@ interface EarlyPayoffSimulatorProps {
   shares: MortgageShare[];
   userRole: UserRole;
   currentPaymentsMade: number;
+  pendingRequests: AmortizationRequest[];
+  onAmortizationRecorded?: () => void;
 }
 
 function formatCurrency(amount: number): string {
@@ -48,9 +52,17 @@ export function EarlyPayoffSimulator({
   shares,
   userRole,
   currentPaymentsMade,
+  pendingRequests,
+  onAmortizationRecorded,
 }: EarlyPayoffSimulatorProps) {
   const [extraAmount, setExtraAmount] = useState('');
   const [afterPayment, setAfterPayment] = useState(currentPaymentsMade.toString());
+  const [isRecording, setIsRecording] = useState(false);
+
+  // Calculate total pending amount for user
+  const userPendingAmount = pendingRequests
+    .filter(r => r.status === 'pending')
+    .reduce((sum, r) => sum + r.amount, 0);
 
   // Get user's share if configured
   const userShare = shares.find(s => s.user_role === userRole);
@@ -112,12 +124,56 @@ export function EarlyPayoffSimulator({
     (_, i) => i
   ).filter(n => n >= currentPaymentsMade);
 
+  // Can user record amortizations? Only borrowers with shares can
+  const canRecordAmortization = hasShares && userRole === 'borrower' && userShare;
+
+  const handleRequestAmortization = async () => {
+    if (!userShare || !extraAmount || !mortgage) return;
+
+    const amount = parseFloat(extraAmount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    // Check if amount exceeds remaining debt (considering pending requests)
+    const availableDebt = userRemainingDebt - userPendingAmount;
+    if (amount > availableDebt) {
+      toast.error(`La cantidad excede tu deuda disponible (${formatCurrency(availableDebt)})`);
+      return;
+    }
+
+    setIsRecording(true);
+    try {
+      const user = await getCurrentUser();
+      if (!user?.email) {
+        toast.error('No se pudo obtener el usuario actual');
+        return;
+      }
+
+      await insertAmortizationRequest({
+        mortgage_id: mortgage.id,
+        share_id: userShare.id,
+        amount,
+        requested_by: user.email,
+        notes: null,
+      });
+      toast.success(`Solicitud de amortización de ${formatCurrency(amount)} enviada. Pendiente de aprobación.`);
+      setExtraAmount('');
+      onAmortizationRecorded?.();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast.error(`Error al enviar solicitud: ${message}`);
+    } finally {
+      setIsRecording(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Simulador de Amortización Anticipada</CardTitle>
         <CardDescription>
-          Calcula el impacto de realizar un pago extra para reducir el plazo
+          {hasShares && userRole === 'borrower'
+            ? 'Registra tus pagos extras para reducir tu participación en la hipoteca'
+            : 'Calcula el impacto de realizar un pago extra para reducir el plazo'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -143,6 +199,36 @@ export function EarlyPayoffSimulator({
                 <p className="text-sm text-muted-foreground">{t.mortgage.shares.amortized}</p>
                 <p className="text-lg font-semibold text-green-600">{formatCurrency(userAmortized)}</p>
               </div>
+              {userPendingAmount > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Pendiente de aprobación</p>
+                  <p className="text-lg font-semibold text-amber-600">{formatCurrency(userPendingAmount)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Pending Requests List - only for borrowers */}
+        {canRecordAmortization && pendingRequests.filter(r => r.status === 'pending').length > 0 && (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p className="text-sm font-medium mb-3">Solicitudes pendientes de aprobación</p>
+            <div className="space-y-2">
+              {pendingRequests
+                .filter(r => r.status === 'pending')
+                .map(request => (
+                  <div key={request.id} className="flex justify-between items-center p-2 bg-white dark:bg-gray-800 rounded">
+                    <div>
+                      <p className="text-sm font-medium">{formatCurrency(request.amount)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(request.created_at).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 rounded">
+                      Pendiente
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -234,64 +320,88 @@ export function EarlyPayoffSimulator({
           <>
             <Separator />
             <div className="space-y-4">
-              <p className="font-medium">Resultado de la simulación</p>
+              <p className="font-medium">
+                {hasShares && userRole === 'borrower'
+                  ? 'Impacto en tu participación'
+                  : 'Resultado de la simulación'}
+              </p>
 
-              {/* Savings Highlight */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div>
-                  <p className="text-sm text-muted-foreground">Ahorro en intereses</p>
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(simulation.interestSaved)}</p>
+              {/* Info note for borrowers about how amortization works */}
+              {hasShares && userRole === 'borrower' && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <strong>Nota:</strong> Tu amortización reduce únicamente tu deuda personal.
+                    La hipoteca total sigue su curso normal y el prestamista asume el restante.
+                  </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Meses que te ahorras</p>
-                  <p className="text-2xl font-bold text-green-600">{simulation.monthsSaved} meses</p>
-                </div>
-              </div>
+              )}
 
-              {/* Comparison */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-lg border">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Sin amortización</p>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span>Cuotas restantes:</span>
-                      <span className="font-medium">{simulation.originalRemainingPayments}</span>
+              {/* Savings Highlight - show differently for borrowers */}
+              {!(hasShares && userRole === 'borrower') && (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ahorro en intereses</p>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(simulation.interestSaved)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Meses que te ahorras</p>
+                    <p className="text-2xl font-bold text-green-600">{simulation.monthsSaved} meses</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Comparison - hide for borrowers, show only their share */}
+              {!(hasShares && userRole === 'borrower') && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 rounded-lg border">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Sin amortización</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Cuotas restantes:</span>
+                        <span className="font-medium">{simulation.originalRemainingPayments}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Intereses totales:</span>
+                        <span className="font-medium">{formatCurrency(simulation.originalTotalInterest)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Intereses totales:</span>
-                      <span className="font-medium">{formatCurrency(simulation.originalTotalInterest)}</span>
+                  </div>
+                  <div className="p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/10">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">Con amortización</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Cuotas restantes:</span>
+                        <span className="font-medium text-green-600">{simulation.newRemainingPayments}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Intereses totales:</span>
+                        <span className="font-medium text-green-600">{formatCurrency(simulation.newTotalInterest)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/10">
-                  <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">Con amortización</p>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span>Cuotas restantes:</span>
-                      <span className="font-medium text-green-600">{simulation.newRemainingPayments}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Intereses totales:</span>
-                      <span className="font-medium text-green-600">{formatCurrency(simulation.newTotalInterest)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
 
-              {/* Impact on User's Share - only show if shares configured */}
+              {/* Impact on User's Share - show for all users with shares */}
               {hasShares && userShare && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm font-medium mb-2">{t.mortgage.shares.myShare}</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm font-medium mb-3">{t.mortgage.shares.myShare}</p>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-muted-foreground">Deuda actual:</span>
-                      <span className="ml-2 font-medium">{formatCurrency(userRemainingDebt)}</span>
+                      <p className="text-sm text-muted-foreground">Deuda actual</p>
+                      <p className="text-lg font-semibold">{formatCurrency(userRemainingDebt)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Después de amortizar:</span>
-                      <span className="ml-2 font-medium text-green-600">
+                      <p className="text-sm text-muted-foreground">Después de amortizar</p>
+                      <p className="text-lg font-semibold text-green-600">
                         {formatCurrency(Math.max(0, userRemainingDebt - simulation.extraPaymentAmount))}
-                      </span>
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">Reducción de deuda</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        -{formatCurrency(Math.min(simulation.extraPaymentAmount, userRemainingDebt))}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -307,6 +417,22 @@ export function EarlyPayoffSimulator({
                     </span>{' '}
                     en intereses (
                     {((simulation.interestSaved / simulation.extraPaymentAmount) * 100).toFixed(1)}% de retorno)
+                  </p>
+                </div>
+              )}
+
+              {/* Request Amortization Button - only for borrowers */}
+              {canRecordAmortization && (
+                <div className="pt-4">
+                  <Button
+                    onClick={handleRequestAmortization}
+                    disabled={isRecording || !extraAmount || parseFloat(extraAmount) <= 0}
+                    className="w-full"
+                  >
+                    {isRecording ? 'Enviando...' : `Solicitar amortización de ${formatCurrency(parseFloat(extraAmount) || 0)}`}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    La solicitud será enviada al prestamista para su aprobación.
                   </p>
                 </div>
               )}

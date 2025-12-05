@@ -6,6 +6,7 @@ import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
 import { AmortizationSchedule } from '@/components/AmortizationSchedule';
 import { EarlyPayoffSimulator } from '@/components/EarlyPayoffSimulator';
+import { AmortizationRequests } from '@/components/AmortizationRequests';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -17,13 +18,14 @@ import {
 } from '@/components/ui/select';
 import { t } from '@/i18n';
 import { calculateAmortizationSchedule } from '@/lib/amortization';
-import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole, AmortizationRequest } from '@/types';
 import {
   fetchPayments,
   fetchMortgage,
   fetchMortgageConditions,
   fetchMortgageBonifications,
   fetchMortgageShares,
+  fetchAmortizationRequests,
   insertPayment,
   removePayment,
   signIn,
@@ -45,6 +47,7 @@ export default function App() {
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
   const [bonifications, setBonifications] = useState<MortgageBonification[]>([]);
   const [shares, setShares] = useState<MortgageShare[]>([]);
+  const [amortizationRequests, setAmortizationRequests] = useState<AmortizationRequest[]>([]);
   const [userRole, setUserRole] = useState<UserRole>('borrower');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
@@ -74,18 +77,21 @@ export default function App() {
       setMortgage(data);
       setUserRole(role);
       if (data) {
-        const [conditionsData, bonificationsData, sharesData] = await Promise.all([
+        const [conditionsData, bonificationsData, sharesData, requestsData] = await Promise.all([
           fetchMortgageConditions(data.id),
           fetchMortgageBonifications(data.id),
           fetchMortgageShares(data.id),
+          fetchAmortizationRequests(data.id),
         ]);
         setConditions(conditionsData);
         setBonifications(bonificationsData);
         setShares(sharesData);
+        setAmortizationRequests(requestsData);
       } else {
         setConditions([]);
         setBonifications([]);
         setShares([]);
+        setAmortizationRequests([]);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t.common.unknownError;
@@ -126,6 +132,7 @@ export default function App() {
         setConditions([]);
         setBonifications([]);
         setShares([]);
+        setAmortizationRequests([]);
       }
     });
 
@@ -291,6 +298,14 @@ export default function App() {
             </TabsContent>
 
             <TabsContent value="simulator" className="space-y-6">
+              {/* Lender sees approval panel */}
+              {userRole === 'lender' && (
+                <AmortizationRequests
+                  requests={amortizationRequests}
+                  shares={shares}
+                  onRequestUpdated={loadMortgage}
+                />
+              )}
               <EarlyPayoffSimulator
                 mortgage={mortgage}
                 conditions={conditions}
@@ -298,6 +313,8 @@ export default function App() {
                 shares={shares}
                 userRole={userRole}
                 currentPaymentsMade={payments.length}
+                pendingRequests={amortizationRequests}
+                onAmortizationRecorded={loadMortgage}
               />
             </TabsContent>
           </Tabs>
