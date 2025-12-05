@@ -46,7 +46,9 @@ export function PaymentsList({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.payments.loading}</p>
+          <p className="text-center text-muted-foreground">
+            {t.payments.loading}
+          </p>
         </CardContent>
       </Card>
     );
@@ -56,7 +58,9 @@ export function PaymentsList({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.payments.empty}</p>
+          <p className="text-center text-muted-foreground">
+            {t.payments.empty}
+          </p>
         </CardContent>
       </Card>
     );
@@ -79,11 +83,21 @@ export function PaymentsList({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12 text-xs sm:text-sm">#</TableHead>
-                <TableHead className="text-xs sm:text-sm">{t.payments.date}</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">{t.payments.amount}</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">{t.payments.principal}</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">{t.payments.interest}</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">{t.payments.balance}</TableHead>
+                <TableHead className="text-xs sm:text-sm">
+                  {t.payments.date}
+                </TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">
+                  {t.payments.amount}
+                </TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">
+                  {t.payments.principal}
+                </TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">
+                  {t.payments.interest}
+                </TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">
+                  {t.payments.balance}
+                </TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -93,7 +107,9 @@ export function PaymentsList({
                   <TableCell className="font-medium text-xs sm:text-sm">
                     {payment.payment_number ?? '-'}
                   </TableCell>
-                  <TableCell className="text-xs sm:text-sm">{formatDate(payment.payment_date)}</TableCell>
+                  <TableCell className="text-xs sm:text-sm">
+                    {formatDate(payment.payment_date)}
+                  </TableCell>
                   <TableCell className="text-right text-xs sm:text-sm">
                     {formatCurrency(payment.amount)}
                   </TableCell>

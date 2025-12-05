@@ -14,8 +14,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { t } from '@/i18n';
-import type { Mortgage, MortgageCondition, MortgageBonification, Payment } from '@/types';
-import { calculateAmortizationSchedule, getScheduleSummary } from '@/lib/amortization';
+import type {
+  Mortgage,
+  MortgageCondition,
+  MortgageBonification,
+  Payment,
+} from '@/types';
+import {
+  calculateAmortizationSchedule,
+  getScheduleSummary,
+} from '@/lib/amortization';
 
 interface AmortizationScheduleProps {
   mortgage: Mortgage | null;
@@ -51,7 +59,9 @@ export function AmortizationSchedule({
   isLoading = false,
 }: AmortizationScheduleProps) {
   const schedule = useMemo(() => {
-    if (!mortgage) return [];
+    if (!mortgage) {
+      return [];
+    }
     return calculateAmortizationSchedule(mortgage, conditions, bonifications);
   }, [mortgage, conditions, bonifications]);
 
@@ -61,14 +71,20 @@ export function AmortizationSchedule({
 
   // Create a set of paid payment numbers for quick lookup
   const paidPaymentNumbers = useMemo(() => {
-    return new Set(payments.map(p => p.payment_number).filter((n): n is number => n !== null));
+    return new Set(
+      payments
+        .map((p) => p.payment_number)
+        .filter((n): n is number => n !== null)
+    );
   }, [payments]);
 
   if (isLoading) {
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.common.loading}</p>
+          <p className="text-center text-muted-foreground">
+            {t.common.loading}
+          </p>
         </CardContent>
       </Card>
     );
@@ -78,7 +94,9 @@ export function AmortizationSchedule({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.mortgage.noMortgage}</p>
+          <p className="text-center text-muted-foreground">
+            {t.mortgage.noMortgage}
+          </p>
         </CardContent>
       </Card>
     );
@@ -89,22 +107,35 @@ export function AmortizationSchedule({
       <CardHeader>
         <CardTitle>{t.schedule.title}</CardTitle>
         <CardDescription>
-          {summary.numberOfPayments} {t.schedule.payments} · {t.schedule.totalInterest}: {formatCurrency(summary.totalInterest)}
+          {summary.numberOfPayments} {t.schedule.payments} ·{' '}
+          {t.schedule.totalInterest}: {formatCurrency(summary.totalInterest)}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-4 bg-muted rounded-lg">
           <div>
-            <p className="text-sm text-muted-foreground">{t.schedule.totalPrincipal}</p>
-            <p className="text-lg font-semibold">{formatCurrency(summary.totalPrincipal)}</p>
+            <p className="text-sm text-muted-foreground">
+              {t.schedule.totalPrincipal}
+            </p>
+            <p className="text-lg font-semibold">
+              {formatCurrency(summary.totalPrincipal)}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t.schedule.totalInterest}</p>
-            <p className="text-lg font-semibold text-orange-600">{formatCurrency(summary.totalInterest)}</p>
+            <p className="text-sm text-muted-foreground">
+              {t.schedule.totalInterest}
+            </p>
+            <p className="text-lg font-semibold text-orange-600">
+              {formatCurrency(summary.totalInterest)}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t.schedule.totalAmount}</p>
-            <p className="text-lg font-semibold text-blue-600">{formatCurrency(summary.totalPayments)}</p>
+            <p className="text-sm text-muted-foreground">
+              {t.schedule.totalAmount}
+            </p>
+            <p className="text-lg font-semibold text-blue-600">
+              {formatCurrency(summary.totalPayments)}
+            </p>
           </div>
         </div>
 
@@ -113,13 +144,27 @@ export function AmortizationSchedule({
             <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow className="border-b bg-background">
                 <TableHead className="w-16 bg-background">#</TableHead>
-                <TableHead className="bg-background">{t.schedule.date}</TableHead>
-                <TableHead className="text-right bg-background">{t.schedule.principal}</TableHead>
-                <TableHead className="text-right bg-background">{t.schedule.interest}</TableHead>
-                <TableHead className="text-right bg-background">{t.schedule.payment}</TableHead>
-                <TableHead className="text-right bg-background">{t.schedule.balance}</TableHead>
-                <TableHead className="text-right bg-background">{t.schedule.rate}</TableHead>
-                <TableHead className="w-20 text-center bg-background">{t.schedule.status}</TableHead>
+                <TableHead className="bg-background">
+                  {t.schedule.date}
+                </TableHead>
+                <TableHead className="text-right bg-background">
+                  {t.schedule.principal}
+                </TableHead>
+                <TableHead className="text-right bg-background">
+                  {t.schedule.interest}
+                </TableHead>
+                <TableHead className="text-right bg-background">
+                  {t.schedule.payment}
+                </TableHead>
+                <TableHead className="text-right bg-background">
+                  {t.schedule.balance}
+                </TableHead>
+                <TableHead className="text-right bg-background">
+                  {t.schedule.rate}
+                </TableHead>
+                <TableHead className="w-20 text-center bg-background">
+                  {t.schedule.status}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,16 +175,22 @@ export function AmortizationSchedule({
                     key={payment.paymentNumber}
                     className={isPaid ? 'bg-green-50 dark:bg-green-950/20' : ''}
                   >
-                    <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
+                    <TableCell className="font-medium">
+                      {payment.paymentNumber}
+                    </TableCell>
                     <TableCell>{formatDate(payment.date)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(payment.principal)}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(payment.principal)}
+                    </TableCell>
                     <TableCell className="text-right text-orange-600">
                       {formatCurrency(payment.interest)}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(payment.totalPayment)}
                     </TableCell>
-                    <TableCell className="text-right">{formatCurrency(payment.remainingBalance)}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(payment.remainingBalance)}
+                    </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {formatPercent(payment.interestRate)}
                     </TableCell>

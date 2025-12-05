@@ -18,7 +18,16 @@ import {
 } from '@/components/ui/select';
 import { t } from '@/i18n';
 import { calculateAmortizationSchedule } from '@/lib/amortization';
-import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole, AmortizationRequest } from '@/types';
+import type {
+  Payment,
+  PaymentInsert,
+  Mortgage,
+  MortgageCondition,
+  MortgageBonification,
+  MortgageShare,
+  UserRole,
+  AmortizationRequest,
+} from '@/types';
 import {
   fetchPayments,
   fetchMortgage,
@@ -45,9 +54,13 @@ export default function App() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mortgage, setMortgage] = useState<Mortgage | null>(null);
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
-  const [bonifications, setBonifications] = useState<MortgageBonification[]>([]);
+  const [bonifications, setBonifications] = useState<MortgageBonification[]>(
+    []
+  );
   const [shares, setShares] = useState<MortgageShare[]>([]);
-  const [amortizationRequests, setAmortizationRequests] = useState<AmortizationRequest[]>([]);
+  const [amortizationRequests, setAmortizationRequests] = useState<
+    AmortizationRequest[]
+  >([]);
   const [userRole, setUserRole] = useState<UserRole>('borrower');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
@@ -60,7 +73,8 @@ export default function App() {
       const data = await fetchPayments();
       setPayments(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : t.common.unknownError;
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
       toast.error(`${t.toast.loadPaymentsError}: ${message}`);
     } finally {
       setIsLoadingPayments(false);
@@ -77,12 +91,13 @@ export default function App() {
       setMortgage(data);
       setUserRole(role);
       if (data) {
-        const [conditionsData, bonificationsData, sharesData, requestsData] = await Promise.all([
-          fetchMortgageConditions(data.id),
-          fetchMortgageBonifications(data.id),
-          fetchMortgageShares(data.id),
-          fetchAmortizationRequests(data.id),
-        ]);
+        const [conditionsData, bonificationsData, sharesData, requestsData] =
+          await Promise.all([
+            fetchMortgageConditions(data.id),
+            fetchMortgageBonifications(data.id),
+            fetchMortgageShares(data.id),
+            fetchAmortizationRequests(data.id),
+          ]);
         setConditions(conditionsData);
         setBonifications(bonificationsData);
         setShares(sharesData);
@@ -94,7 +109,8 @@ export default function App() {
         setAmortizationRequests([]);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : t.common.unknownError;
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
       toast.error(`${t.toast.loadMortgageError}: ${message}`);
     } finally {
       setIsLoadingMortgage(false);
@@ -175,7 +191,8 @@ export default function App() {
       toast.success(t.toast.paymentAdded);
       await loadPayments();
     } catch (err) {
-      const message = err instanceof Error ? err.message : t.common.unknownError;
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
       toast.error(`${t.common.error}: ${message}`);
     }
   };
@@ -186,7 +203,8 @@ export default function App() {
       toast.success(t.toast.paymentDeleted);
       await loadPayments();
     } catch (err) {
-      const message = err instanceof Error ? err.message : t.common.unknownError;
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
       toast.error(`${t.common.error}: ${message}`);
     }
   };
@@ -205,11 +223,15 @@ export default function App() {
 
       <header className="border-b">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
-          <h1 className="text-lg sm:text-2xl font-bold truncate">{t.app.title}</h1>
+          <h1 className="text-lg sm:text-2xl font-bold truncate">
+            {t.app.title}
+          </h1>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {section === 'app' && userEmail && (
               <>
-                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">{userEmail}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+                  {userEmail}
+                </span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   {t.app.logout}
                 </Button>
@@ -229,10 +251,17 @@ export default function App() {
         )}
 
         {section === 'app' && (
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="space-y-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as TabValue)}
+            className="space-y-6"
+          >
             {/* Mobile: Select dropdown */}
             <div className="sm:hidden">
-              <Select value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+              <Select
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as TabValue)}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -241,7 +270,9 @@ export default function App() {
                   <SelectItem value="payments">{t.app.tabPayments}</SelectItem>
                   <SelectItem value="history">{t.app.tabHistory}</SelectItem>
                   <SelectItem value="schedule">{t.app.tabSchedule}</SelectItem>
-                  <SelectItem value="simulator">{t.app.tabSimulator}</SelectItem>
+                  <SelectItem value="simulator">
+                    {t.app.tabSimulator}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -270,12 +301,22 @@ export default function App() {
             <TabsContent value="payments" className="space-y-6">
               <PaymentForm
                 onAddPayment={handleAddPayment}
-                suggestedAmount={mortgage ? (() => {
-                  const schedule = calculateAmortizationSchedule(mortgage, conditions, bonifications);
-                  const nextPaymentNumber = payments.length + 1;
-                  const nextPayment = schedule.find(p => p.paymentNumber === nextPaymentNumber);
-                  return nextPayment?.totalPayment;
-                })() : undefined}
+                suggestedAmount={
+                  mortgage
+                    ? (() => {
+                        const schedule = calculateAmortizationSchedule(
+                          mortgage,
+                          conditions,
+                          bonifications
+                        );
+                        const nextPaymentNumber = payments.length + 1;
+                        const nextPayment = schedule.find(
+                          (p) => p.paymentNumber === nextPaymentNumber
+                        );
+                        return nextPayment?.totalPayment;
+                      })()
+                    : undefined
+                }
               />
             </TabsContent>
 

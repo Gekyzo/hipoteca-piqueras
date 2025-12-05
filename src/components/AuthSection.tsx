@@ -73,7 +73,9 @@ export function AuthSection({
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">{t.auth.or}</span>
+            <span className="bg-card px-2 text-muted-foreground">
+              {t.auth.or}
+            </span>
           </div>
         </div>
 

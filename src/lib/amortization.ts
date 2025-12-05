@@ -1,9 +1,16 @@
-import type { Mortgage, MortgageCondition, MortgageBonification, AmortizationPayment } from '@/types';
+import type {
+  Mortgage,
+  MortgageCondition,
+  MortgageBonification,
+  AmortizationPayment,
+} from '@/types';
 
 // Calculate total rate reduction from active bonifications
-export function calculateTotalBonification(bonifications: MortgageBonification[]): number {
+export function calculateTotalBonification(
+  bonifications: MortgageBonification[]
+): number {
   return bonifications
-    .filter(b => b.is_active)
+    .filter((b) => b.is_active)
     .reduce((total, b) => total + b.rate_reduction, 0);
 }
 
@@ -21,13 +28,13 @@ export function calculateAmortizationSchedule(
 
   // Sort conditions by start_month
   const sortedConditions = [...conditions]
-    .filter(c => c.interest_rate !== null)
+    .filter((c) => c.interest_rate !== null)
     .sort((a, b) => a.start_month - b.start_month);
 
   // Helper to get the rate for a specific month (with bonification applied)
   const getRateForMonth = (month: number): number => {
     const condition = sortedConditions.find(
-      c => month >= c.start_month && month <= c.end_month
+      (c) => month >= c.start_month && month <= c.end_month
     );
     const baseRate = condition?.interest_rate ?? mortgage.interest_rate;
     // Apply bonification reduction, ensuring rate doesn't go below 0
@@ -44,8 +51,10 @@ export function calculateAmortizationSchedule(
       return principal / months;
     }
     const monthlyRate = annualRate / 100 / 12;
-    return (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
-      (Math.pow(1 + monthlyRate, months) - 1);
+    return (
+      (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+      (Math.pow(1 + monthlyRate, months) - 1)
+    );
   };
 
   // Group consecutive months with the same rate to recalculate payments
@@ -65,11 +74,19 @@ export function calculateAmortizationSchedule(
     }
 
     // Calculate the monthly payment for this rate period
-    const monthlyPayment = calculateMonthlyPayment(balance, currentRate, remainingMonths);
+    const monthlyPayment = calculateMonthlyPayment(
+      balance,
+      currentRate,
+      remainingMonths
+    );
     const monthlyRate = currentRate / 100 / 12;
 
     // Generate payments for this rate period
-    for (let month = currentMonth; month <= endMonthForRate && balance > 0.01; month++) {
+    for (
+      let month = currentMonth;
+      month <= endMonthForRate && balance > 0.01;
+      month++
+    ) {
       const paymentDate = new Date(startDate);
       paymentDate.setMonth(paymentDate.getMonth() + month - 1);
 
@@ -166,14 +183,21 @@ export function simulateEarlyPayoff(
   strategy: EarlyPayoffStrategy
 ): EarlyPayoffSimulation {
   // Get original schedule
-  const originalSchedule = calculateAmortizationSchedule(mortgage, conditions, bonifications);
+  const originalSchedule = calculateAmortizationSchedule(
+    mortgage,
+    conditions,
+    bonifications
+  );
   const originalSummary = getScheduleSummary(originalSchedule);
 
   // Find the balance after the specified payment
-  const paymentAfter = originalSchedule.find(p => p.paymentNumber === afterPaymentNumber);
-  const balanceBeforeExtra = afterPaymentNumber === 0
-    ? mortgage.total_amount
-    : (paymentAfter?.remainingBalance ?? mortgage.total_amount);
+  const paymentAfter = originalSchedule.find(
+    (p) => p.paymentNumber === afterPaymentNumber
+  );
+  const balanceBeforeExtra =
+    afterPaymentNumber === 0
+      ? mortgage.total_amount
+      : (paymentAfter?.remainingBalance ?? mortgage.total_amount);
 
   // Apply extra payment to principal
   const newBalance = Math.max(0, balanceBeforeExtra - extraPaymentAmount);
@@ -181,7 +205,7 @@ export function simulateEarlyPayoff(
   if (newBalance <= 0) {
     // Mortgage fully paid off
     const interestPaidSoFar = originalSchedule
-      .filter(p => p.paymentNumber <= afterPaymentNumber)
+      .filter((p) => p.paymentNumber <= afterPaymentNumber)
       .reduce((sum, p) => sum + p.interest, 0);
 
     return {
@@ -190,13 +214,18 @@ export function simulateEarlyPayoff(
       paymentNumber: afterPaymentNumber,
       originalTotalInterest: originalSummary.totalInterest,
       originalRemainingPayments: originalSchedule.length - afterPaymentNumber,
-      originalMonthlyPayment: originalSchedule[afterPaymentNumber]?.totalPayment ?? 0,
+      originalMonthlyPayment:
+        originalSchedule[afterPaymentNumber]?.totalPayment ?? 0,
       newTotalInterest: Math.round(interestPaidSoFar * 100) / 100,
       newRemainingPayments: 0,
       newMonthlyPayment: 0,
-      interestSaved: Math.round((originalSummary.totalInterest - interestPaidSoFar) * 100) / 100,
+      interestSaved:
+        Math.round((originalSummary.totalInterest - interestPaidSoFar) * 100) /
+        100,
       monthsSaved: originalSchedule.length - afterPaymentNumber,
-      newSchedule: originalSchedule.filter(p => p.paymentNumber <= afterPaymentNumber),
+      newSchedule: originalSchedule.filter(
+        (p) => p.paymentNumber <= afterPaymentNumber
+      ),
     };
   }
 
@@ -206,12 +235,12 @@ export function simulateEarlyPayoff(
 
   // Get the rate that would apply after the extra payment
   const sortedConditions = [...conditions]
-    .filter(c => c.interest_rate !== null)
+    .filter((c) => c.interest_rate !== null)
     .sort((a, b) => a.start_month - b.start_month);
 
   const getRateForMonth = (month: number): number => {
     const condition = sortedConditions.find(
-      c => month >= c.start_month && month <= c.end_month
+      (c) => month >= c.start_month && month <= c.end_month
     );
     const baseRate = condition?.interest_rate ?? mortgage.interest_rate;
     return Math.max(0, baseRate - totalBonification);
@@ -231,13 +260,16 @@ export function simulateEarlyPayoff(
       newMonthlyPayment = newBalance / newTermMonths;
     } else {
       const monthlyRate = currentRate / 100 / 12;
-      newMonthlyPayment = (newBalance * monthlyRate * Math.pow(1 + monthlyRate, newTermMonths)) /
+      newMonthlyPayment =
+        (newBalance * monthlyRate * Math.pow(1 + monthlyRate, newTermMonths)) /
         (Math.pow(1 + monthlyRate, newTermMonths) - 1);
     }
   } else {
     // Keep similar payment, calculate new shorter term
-    const originalPayment = originalSchedule[afterPaymentNumber]?.totalPayment ??
-      originalSchedule[0]?.totalPayment ?? mortgage.monthly_payment;
+    const originalPayment =
+      originalSchedule[afterPaymentNumber]?.totalPayment ??
+      originalSchedule[0]?.totalPayment ??
+      mortgage.monthly_payment;
     newMonthlyPayment = originalPayment;
 
     if (currentRate === 0) {
@@ -252,7 +284,9 @@ export function simulateEarlyPayoff(
         // Payment not enough to cover interest, keep original term
         newTermMonths = remainingOriginalMonths;
       } else {
-        newTermMonths = Math.ceil(Math.log(numerator / denominator) / Math.log(1 + monthlyRate));
+        newTermMonths = Math.ceil(
+          Math.log(numerator / denominator) / Math.log(1 + monthlyRate)
+        );
       }
     }
   }
@@ -262,8 +296,8 @@ export function simulateEarlyPayoff(
 
   // Copy payments before the extra payment
   originalSchedule
-    .filter(p => p.paymentNumber <= afterPaymentNumber)
-    .forEach(p => newSchedule.push({ ...p }));
+    .filter((p) => p.paymentNumber <= afterPaymentNumber)
+    .forEach((p) => newSchedule.push({ ...p }));
 
   // Generate remaining payments with new balance
   let balance = newBalance;
@@ -292,7 +326,8 @@ export function simulateEarlyPayoff(
       if (strategy === 'reduce_term') {
         // Recalculate payment each period when reducing term
         const remainingMonths = newTermMonths - monthsProcessed;
-        totalPayment = (balance * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
+        totalPayment =
+          (balance * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
           (Math.pow(1 + monthlyRate, remainingMonths) - 1);
         principalPayment = totalPayment - interestPayment;
       } else {
@@ -331,12 +366,21 @@ export function simulateEarlyPayoff(
     paymentNumber: afterPaymentNumber,
     originalTotalInterest: originalSummary.totalInterest,
     originalRemainingPayments: originalSchedule.length - afterPaymentNumber,
-    originalMonthlyPayment: originalSchedule[afterPaymentNumber]?.totalPayment ?? originalSchedule[0]?.totalPayment ?? 0,
+    originalMonthlyPayment:
+      originalSchedule[afterPaymentNumber]?.totalPayment ??
+      originalSchedule[0]?.totalPayment ??
+      0,
     newTotalInterest: newSummary.totalInterest,
     newRemainingPayments: newSchedule.length - afterPaymentNumber,
     newMonthlyPayment: Math.round(newMonthlyPayment * 100) / 100,
-    interestSaved: Math.round((originalSummary.totalInterest - newSummary.totalInterest) * 100) / 100,
-    monthsSaved: (originalSchedule.length - afterPaymentNumber) - (newSchedule.length - afterPaymentNumber),
+    interestSaved:
+      Math.round(
+        (originalSummary.totalInterest - newSummary.totalInterest) * 100
+      ) / 100,
+    monthsSaved:
+      originalSchedule.length -
+      afterPaymentNumber -
+      (newSchedule.length - afterPaymentNumber),
     newSchedule,
   };
 }

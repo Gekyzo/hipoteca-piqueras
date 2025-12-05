@@ -8,8 +8,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
-import type { Mortgage, Payment, MortgageCondition, MortgageBonification, MortgageShare, UserRole, ConditionType, BonificationType } from '@/types';
-import { calculateTotalBonification, calculateAmortizationSchedule } from '@/lib/amortization';
+import type {
+  Mortgage,
+  Payment,
+  MortgageCondition,
+  MortgageBonification,
+  MortgageShare,
+  UserRole,
+  ConditionType,
+  BonificationType,
+} from '@/types';
+import {
+  calculateTotalBonification,
+  calculateAmortizationSchedule,
+} from '@/lib/amortization';
 
 interface MortgageInfoProps {
   mortgage: Mortgage | null;
@@ -46,8 +58,10 @@ function calculateMonthlyPayment(
     return principal / termMonths;
   }
   const monthlyRate = annualRate / 100 / 12;
-  return (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
-    (Math.pow(1 + monthlyRate, termMonths) - 1);
+  return (
+    (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+    (Math.pow(1 + monthlyRate, termMonths) - 1)
+  );
 }
 
 interface RateSchedule {
@@ -71,13 +85,13 @@ function calculateTotalInterestWithConditions(
 
   // Sort conditions by start_month
   const sortedConditions = [...conditions]
-    .filter(c => c.interest_rate !== null)
+    .filter((c) => c.interest_rate !== null)
     .sort((a, b) => a.start_month - b.start_month);
 
   while (currentMonth <= termMonths) {
     // Find if any condition applies to this month
     const applicableCondition = sortedConditions.find(
-      c => currentMonth >= c.start_month && currentMonth <= c.end_month
+      (c) => currentMonth >= c.start_month && currentMonth <= c.end_month
     );
 
     const conditionRate = applicableCondition?.interest_rate ?? baseRate;
@@ -88,11 +102,13 @@ function calculateTotalInterestWithConditions(
     let endMonth = currentMonth;
     while (endMonth < termMonths) {
       const nextCondition = sortedConditions.find(
-        c => (endMonth + 1) >= c.start_month && (endMonth + 1) <= c.end_month
+        (c) => endMonth + 1 >= c.start_month && endMonth + 1 <= c.end_month
       );
       const nextConditionRate = nextCondition?.interest_rate ?? baseRate;
       const nextRate = Math.max(0, nextConditionRate - totalBonification);
-      if (nextRate !== rate) break;
+      if (nextRate !== rate) {
+        break;
+      }
       endMonth++;
     }
 
@@ -121,7 +137,8 @@ function calculateTotalInterestWithConditions(
     }
 
     // Calculate monthly payment for remaining balance and remaining term
-    const monthlyPayment = (balance * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
+    const monthlyPayment =
+      (balance * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
       (Math.pow(1 + monthlyRate, remainingMonths) - 1);
 
     // Amortize for the months in this schedule
@@ -148,7 +165,10 @@ function getConditionTypeLabel(type: ConditionType): string {
 }
 
 function getBonificationTypeLabel(type: BonificationType): string {
-  const labels = t.mortgage.bonifications.types as Record<BonificationType, string>;
+  const labels = t.mortgage.bonifications.types as Record<
+    BonificationType,
+    string
+  >;
   return labels[type] ?? type;
 }
 
@@ -166,7 +186,9 @@ export function MortgageInfo({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.common.loading}</p>
+          <p className="text-center text-muted-foreground">
+            {t.common.loading}
+          </p>
         </CardContent>
       </Card>
     );
@@ -176,7 +198,9 @@ export function MortgageInfo({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">{t.mortgage.noMortgage}</p>
+          <p className="text-center text-muted-foreground">
+            {t.mortgage.noMortgage}
+          </p>
         </CardContent>
       </Card>
     );
@@ -186,14 +210,22 @@ export function MortgageInfo({
   const effectiveRate = Math.max(0, mortgage.interest_rate - totalBonification);
 
   // Calculate the amortization schedule to get accurate payment amounts
-  const schedule = calculateAmortizationSchedule(mortgage, conditions, bonifications);
-  const nextPaymentNumber = payments.length + 1;
-  const nextPayment = schedule.find(p => p.paymentNumber === nextPaymentNumber);
-  const effectiveMonthlyPayment = nextPayment?.totalPayment ?? calculateMonthlyPayment(
-    mortgage.total_amount,
-    effectiveRate,
-    mortgage.term_months
+  const schedule = calculateAmortizationSchedule(
+    mortgage,
+    conditions,
+    bonifications
   );
+  const nextPaymentNumber = payments.length + 1;
+  const nextPayment = schedule.find(
+    (p) => p.paymentNumber === nextPaymentNumber
+  );
+  const effectiveMonthlyPayment =
+    nextPayment?.totalPayment ??
+    calculateMonthlyPayment(
+      mortgage.total_amount,
+      effectiveRate,
+      mortgage.term_months
+    );
 
   const totalInterest = calculateTotalInterestWithConditions(
     mortgage.total_amount,
@@ -205,13 +237,16 @@ export function MortgageInfo({
   const totalPayments = mortgage.total_amount + totalInterest;
   const endDate = calculateEndDate(mortgage.start_date, mortgage.term_months);
 
-  const paidPrincipal = payments.reduce((sum, p) => sum + (p.principal ?? 0), 0);
+  const paidPrincipal = payments.reduce(
+    (sum, p) => sum + (p.principal ?? 0),
+    0
+  );
   const paidInterest = payments.reduce((sum, p) => sum + (p.interest ?? 0), 0);
   const remainingBalance = mortgage.total_amount - paidPrincipal;
   const progressPercent = (paidPrincipal / mortgage.total_amount) * 100;
 
   // Get user's share information
-  const userShare = shares.find(s => s.user_role === userRole);
+  const userShare = shares.find((s) => s.user_role === userRole);
   const hasShares = shares.length > 0;
 
   // Calculate user-specific debt if shares are configured
@@ -220,11 +255,15 @@ export function MortgageInfo({
   // User's remaining debt = (their share percentage * remaining mortgage balance) - their amortizations
   const userSharePercentage = userShare?.initial_share_percentage ?? 0;
   const userRemainingDebt = hasShares
-    ? Math.max(0, (remainingBalance * userSharePercentage / 100) - userAmortized)
+    ? Math.max(
+        0,
+        (remainingBalance * userSharePercentage) / 100 - userAmortized
+      )
     : remainingBalance;
-  const userProgressPercent = hasShares && userInitialDebt > 0
-    ? ((userInitialDebt - userRemainingDebt) / userInitialDebt) * 100
-    : progressPercent;
+  const userProgressPercent =
+    hasShares && userInitialDebt > 0
+      ? ((userInitialDebt - userRemainingDebt) / userInitialDebt) * 100
+      : progressPercent;
 
   return (
     <Card>
@@ -244,12 +283,30 @@ export function MortgageInfo({
         <div>
           <p className="text-sm font-medium mb-3">{t.mortgage.contractual}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <InfoItem label={t.mortgage.totalAmount} value={formatCurrency(mortgage.total_amount)} />
-            <InfoItem label={t.mortgage.interestRate} value={formatPercent(mortgage.interest_rate)} />
-            <InfoItem label={t.mortgage.monthlyPayment} value={formatCurrency(mortgage.monthly_payment)} />
-            <InfoItem label={t.mortgage.startDate} value={formatDate(mortgage.start_date)} />
-            <InfoItem label={t.mortgage.endDate} value={formatDate(endDate.toISOString())} />
-            <InfoItem label={t.mortgage.termYears} value={`${(mortgage.term_months / 12).toFixed(1)} años`} />
+            <InfoItem
+              label={t.mortgage.totalAmount}
+              value={formatCurrency(mortgage.total_amount)}
+            />
+            <InfoItem
+              label={t.mortgage.interestRate}
+              value={formatPercent(mortgage.interest_rate)}
+            />
+            <InfoItem
+              label={t.mortgage.monthlyPayment}
+              value={formatCurrency(mortgage.monthly_payment)}
+            />
+            <InfoItem
+              label={t.mortgage.startDate}
+              value={formatDate(mortgage.start_date)}
+            />
+            <InfoItem
+              label={t.mortgage.endDate}
+              value={formatDate(endDate.toISOString())}
+            />
+            <InfoItem
+              label={t.mortgage.termYears}
+              value={`${(mortgage.term_months / 12).toFixed(1)} años`}
+            />
           </div>
         </div>
 
@@ -260,10 +317,26 @@ export function MortgageInfo({
             <div>
               <p className="text-sm font-medium mb-3">{t.mortgage.effective}</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <InfoItem label={t.mortgage.totalPayments} value={formatCurrency(totalPayments)} highlight="text-red-600" />
-                <InfoItem label={t.mortgage.bonifications.effectiveRate} value={formatPercent(effectiveRate)} highlight="text-green-600" />
-                <InfoItem label={t.mortgage.effectiveMonthlyPayment} value={formatCurrency(effectiveMonthlyPayment)} highlight="text-green-600" />
-                <InfoItem label={t.mortgage.totalInterest} value={formatCurrency(totalInterest)} highlight="text-orange-600" />
+                <InfoItem
+                  label={t.mortgage.totalPayments}
+                  value={formatCurrency(totalPayments)}
+                  highlight="text-red-600"
+                />
+                <InfoItem
+                  label={t.mortgage.bonifications.effectiveRate}
+                  value={formatPercent(effectiveRate)}
+                  highlight="text-green-600"
+                />
+                <InfoItem
+                  label={t.mortgage.effectiveMonthlyPayment}
+                  value={formatCurrency(effectiveMonthlyPayment)}
+                  highlight="text-green-600"
+                />
+                <InfoItem
+                  label={t.mortgage.totalInterest}
+                  value={formatCurrency(totalInterest)}
+                  highlight="text-orange-600"
+                />
               </div>
             </div>
           </>
@@ -277,12 +350,18 @@ export function MortgageInfo({
               <p className="text-sm font-medium mb-3">
                 {t.mortgage.shares?.myShare ?? 'Mi Participación'}
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  ({userRole === 'lender' ? t.mortgage.shares?.lender ?? 'Prestamista' : t.mortgage.shares?.borrower ?? 'Prestatario'})
+                  (
+                  {userRole === 'lender'
+                    ? (t.mortgage.shares?.lender ?? 'Prestamista')
+                    : (t.mortgage.shares?.borrower ?? 'Prestatario')}
+                  )
                 </span>
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <InfoItem
-                  label={t.mortgage.shares?.initialShare ?? 'Participación Inicial'}
+                  label={
+                    t.mortgage.shares?.initialShare ?? 'Participación Inicial'
+                  }
                   value={`${formatCurrency(userInitialDebt)} (${userSharePercentage}%)`}
                 />
                 <InfoItem
@@ -299,7 +378,9 @@ export function MortgageInfo({
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between text-sm">
                   <span>{t.mortgage.shares?.myProgress ?? 'Mi Progreso'}</span>
-                  <span className="font-medium">{userProgressPercent.toFixed(1)}%</span>
+                  <span className="font-medium">
+                    {userProgressPercent.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
@@ -316,9 +397,15 @@ export function MortgageInfo({
 
         {/* Total Mortgage Balance and Progress */}
         <div>
-          <p className="text-sm font-medium mb-3">{t.mortgage.shares?.totalMortgage ?? 'Hipoteca Total'}</p>
+          <p className="text-sm font-medium mb-3">
+            {t.mortgage.shares?.totalMortgage ?? 'Hipoteca Total'}
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <InfoItem label={t.mortgage.remainingBalance} value={formatCurrency(remainingBalance)} highlight="text-blue-600" />
+            <InfoItem
+              label={t.mortgage.remainingBalance}
+              value={formatCurrency(remainingBalance)}
+              highlight="text-blue-600"
+            />
           </div>
 
           <div className="space-y-2 mt-4">
@@ -333,8 +420,16 @@ export function MortgageInfo({
               />
             </div>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <InfoItem label={t.mortgage.paidPrincipal} value={formatCurrency(paidPrincipal)} highlight="text-green-600" />
-              <InfoItem label={t.mortgage.paidInterest} value={formatCurrency(paidInterest)} highlight="text-amber-600" />
+              <InfoItem
+                label={t.mortgage.paidPrincipal}
+                value={formatCurrency(paidPrincipal)}
+                highlight="text-green-600"
+              />
+              <InfoItem
+                label={t.mortgage.paidInterest}
+                value={formatCurrency(paidInterest)}
+                highlight="text-amber-600"
+              />
             </div>
           </div>
         </div>
@@ -343,7 +438,9 @@ export function MortgageInfo({
           <>
             <Separator />
             <div>
-              <p className="text-sm font-medium mb-3">{t.mortgage.conditions.title}</p>
+              <p className="text-sm font-medium mb-3">
+                {t.mortgage.conditions.title}
+              </p>
               <div className="space-y-2">
                 {conditions.map((condition) => (
                   <div
@@ -355,13 +452,16 @@ export function MortgageInfo({
                         {getConditionTypeLabel(condition.condition_type)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {t.mortgage.conditions.months} {condition.start_month} - {condition.end_month}
+                        {t.mortgage.conditions.months} {condition.start_month} -{' '}
+                        {condition.end_month}
                         {condition.description && ` · ${condition.description}`}
                       </p>
                     </div>
                     {condition.interest_rate !== null && (
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">{t.mortgage.conditions.rate}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t.mortgage.conditions.rate}
+                        </p>
                         <p className="font-semibold text-green-600">
                           {formatPercent(condition.interest_rate)}
                         </p>
@@ -378,26 +478,38 @@ export function MortgageInfo({
           <>
             <Separator />
             <div>
-              <p className="text-sm font-medium mb-3">{t.mortgage.bonifications.title}</p>
+              <p className="text-sm font-medium mb-3">
+                {t.mortgage.bonifications.title}
+              </p>
               <div className="space-y-2">
                 {bonifications.map((bonification) => (
                   <div
                     key={bonification.id}
                     className={`flex items-center justify-between p-3 rounded-lg ${
-                      bonification.is_active ? 'bg-green-50 dark:bg-green-950/20' : 'bg-muted opacity-60'
+                      bonification.is_active
+                        ? 'bg-green-50 dark:bg-green-950/20'
+                        : 'bg-muted opacity-60'
                     }`}
                   >
                     <div>
                       <p className="font-medium text-sm">
-                        {getBonificationTypeLabel(bonification.bonification_type)}
+                        {getBonificationTypeLabel(
+                          bonification.bonification_type
+                        )}
                       </p>
                       {bonification.description && (
-                        <p className="text-xs text-muted-foreground">{bonification.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {bonification.description}
+                        </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">{t.mortgage.bonifications.reduction}</p>
-                      <p className={`font-semibold ${bonification.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      <p className="text-sm text-muted-foreground">
+                        {t.mortgage.bonifications.reduction}
+                      </p>
+                      <p
+                        className={`font-semibold ${bonification.is_active ? 'text-green-600' : 'text-muted-foreground'}`}
+                      >
                         -{formatPercent(bonification.rate_reduction)}
                       </p>
                     </div>
@@ -405,8 +517,12 @@ export function MortgageInfo({
                 ))}
                 {totalBonification > 0 && (
                   <div className="flex justify-between items-center pt-2 border-t">
-                    <p className="text-sm font-medium">{t.mortgage.bonifications.totalReduction}</p>
-                    <p className="font-semibold text-green-600">-{formatPercent(totalBonification)}</p>
+                    <p className="text-sm font-medium">
+                      {t.mortgage.bonifications.totalReduction}
+                    </p>
+                    <p className="font-semibold text-green-600">
+                      -{formatPercent(totalBonification)}
+                    </p>
                   </div>
                 )}
               </div>
@@ -418,7 +534,9 @@ export function MortgageInfo({
           <>
             <Separator />
             <div>
-              <p className="text-sm text-muted-foreground mb-1">{t.mortgage.notes}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {t.mortgage.notes}
+              </p>
               <p className="text-sm">{mortgage.notes}</p>
             </div>
           </>
@@ -431,7 +549,7 @@ export function MortgageInfo({
 function InfoItem({
   label,
   value,
-  highlight
+  highlight,
 }: {
   label: string;
   value: string;

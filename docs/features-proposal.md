@@ -9,6 +9,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 ## Plan Gratuito (Free)
 
 ### Gestión Básica de Hipoteca
+
 - ✅ Crear y editar una hipoteca
 - ✅ Registro de pagos mensuales
 - ✅ Historial de pagos (últimos 12 meses)
@@ -16,16 +17,19 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 - ✅ Cálculo de cuota mensual
 
 ### Simulador Básico
+
 - ✅ Simulación de amortización anticipada
 - ✅ Cálculo de ahorro en intereses
 - ✅ Visualización de impacto en plazo
 
 ### Autenticación
+
 - ✅ Login con email
 - ✅ Login con Google
 - ✅ Una cuenta por usuario
 
 ### Limitaciones del Plan Gratuito
+
 - ❌ Solo 1 hipoteca por cuenta
 - ❌ Sin exportación de datos
 - ❌ Sin notificaciones
@@ -42,6 +46,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 ### Todo lo del Plan Gratuito, más:
 
 ### Gestión Avanzada
+
 - ⭐ Múltiples hipotecas (hasta 5)
 - ⭐ Historial de pagos ilimitado
 - ⭐ Condiciones especiales por período (tipos promocionales, carencia)
@@ -49,30 +54,35 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 - ⭐ Notas y documentos adjuntos
 
 ### Sistema de Participaciones
+
 - ⭐ División de hipoteca entre partes
 - ⭐ Seguimiento individual por participante
 - ⭐ Cálculo de deuda por porcentaje
 - ⭐ Historial de amortizaciones por parte
 
 ### Flujo de Aprobación
+
 - ⭐ Solicitudes de amortización anticipada
 - ⭐ Panel de aprobación para prestamista
 - ⭐ Historial de solicitudes
 - ⭐ Notificaciones por email
 
 ### Análisis y Reportes
+
 - ⭐ Gráficos de evolución
 - ⭐ Comparativa intereses vs principal
 - ⭐ Proyección de ahorro
 - ⭐ Exportación a PDF/Excel
 
 ### Alertas y Notificaciones
+
 - ⭐ Recordatorio de pago mensual
 - ⭐ Alerta de cambio de tipo de interés
 - ⭐ Notificación de solicitudes pendientes
 - ⭐ Resumen mensual por email
 
 ### Herramientas Adicionales
+
 - ⭐ Comparador de ofertas hipotecarias
 - ⭐ Calculadora de refinanciación
 - ⭐ Simulador de subrogación
@@ -85,6 +95,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 ### Todo lo de Premium, más:
 
 ### Para Asesores y Gestores
+
 - 🏆 Hipotecas ilimitadas
 - 🏆 Gestión de múltiples clientes
 - 🏆 Panel de administración
@@ -97,31 +108,32 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 
 ## Comparativa de Planes
 
-| Funcionalidad | Free | Premium | Pro |
-|--------------|------|---------|-----|
-| Hipotecas | 1 | 5 | ∞ |
-| Historial | 12 meses | ∞ | ∞ |
-| Pagos mensuales | ✅ | ✅ | ✅ |
-| Tabla amortización | Básica | Completa | Completa |
-| Simulador | Básico | Avanzado | Avanzado |
-| Condiciones especiales | ❌ | ✅ | ✅ |
-| Bonificaciones | ❌ | ✅ | ✅ |
-| Sistema participaciones | ❌ | ✅ | ✅ |
-| Flujo aprobación | ❌ | ✅ | ✅ |
-| Notificaciones | ❌ | ✅ | ✅ |
-| Exportación | ❌ | ✅ | ✅ |
-| Gráficos | ❌ | ✅ | ✅ |
-| Comparador ofertas | ❌ | ✅ | ✅ |
-| Multi-cliente | ❌ | ❌ | ✅ |
-| API | ❌ | ❌ | ✅ |
-| Marca blanca | ❌ | ❌ | ✅ |
-| **Precio** | Gratis | €4.99/mes | €14.99/mes |
+| Funcionalidad           | Free     | Premium   | Pro        |
+| ----------------------- | -------- | --------- | ---------- |
+| Hipotecas               | 1        | 5         | ∞          |
+| Historial               | 12 meses | ∞         | ∞          |
+| Pagos mensuales         | ✅       | ✅        | ✅         |
+| Tabla amortización      | Básica   | Completa  | Completa   |
+| Simulador               | Básico   | Avanzado  | Avanzado   |
+| Condiciones especiales  | ❌       | ✅        | ✅         |
+| Bonificaciones          | ❌       | ✅        | ✅         |
+| Sistema participaciones | ❌       | ✅        | ✅         |
+| Flujo aprobación        | ❌       | ✅        | ✅         |
+| Notificaciones          | ❌       | ✅        | ✅         |
+| Exportación             | ❌       | ✅        | ✅         |
+| Gráficos                | ❌       | ✅        | ✅         |
+| Comparador ofertas      | ❌       | ✅        | ✅         |
+| Multi-cliente           | ❌       | ❌        | ✅         |
+| API                     | ❌       | ❌        | ✅         |
+| Marca blanca            | ❌       | ❌        | ✅         |
+| **Precio**              | Gratis   | €4.99/mes | €14.99/mes |
 
 ---
 
 ## Roadmap de Implementación
 
 ### Fase 1: MVP Gratuito (Actual)
+
 - [x] Gestión básica de hipoteca
 - [x] Registro de pagos
 - [x] Tabla de amortización
@@ -129,6 +141,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 - [x] Autenticación
 
 ### Fase 2: Premium Básico
+
 - [x] Sistema de participaciones
 - [x] Flujo de aprobación
 - [ ] Condiciones especiales UI
@@ -136,6 +149,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 - [ ] Exportación PDF
 
 ### Fase 3: Premium Completo
+
 - [ ] Notificaciones email
 - [ ] Gráficos de evolución
 - [ ] Comparador de ofertas
@@ -143,6 +157,7 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 - [ ] Múltiples hipotecas
 
 ### Fase 4: Plan Profesional
+
 - [ ] Gestión multi-cliente
 - [ ] Panel de administración
 - [ ] API REST
@@ -153,22 +168,25 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 ## Modelo de Monetización
 
 ### Suscripción
+
 - Pago recurrente mensual o anual
 - Descuento del 33% en plan anual
 - Prueba gratuita de 14 días para Premium
 
 ### Opciones de Pago
+
 - Tarjeta de crédito/débito
 - PayPal
 - Bizum (España)
 
 ### Métricas Objetivo
-| Métrica | Objetivo |
-|---------|----------|
-| Conversión Free→Premium | 5-10% |
-| Churn mensual | <5% |
-| LTV Premium | €120 (2 años) |
-| CAC | <€20 |
+
+| Métrica                 | Objetivo      |
+| ----------------------- | ------------- |
+| Conversión Free→Premium | 5-10%         |
+| Churn mensual           | <5%           |
+| LTV Premium             | €120 (2 años) |
+| CAC                     | <€20          |
 
 ---
 
@@ -176,18 +194,19 @@ Modelo freemium donde las funcionalidades básicas son gratuitas y las avanzadas
 
 Estas funcionalidades se consideraron pero no se incluirán:
 
-| Funcionalidad | Razón de descarte |
-|--------------|-------------------|
-| Conexión con bancos | Complejidad regulatoria (PSD2) |
-| Pagos automáticos | Responsabilidad legal |
-| Asesoría financiera | Requiere licencia |
-| Marketplace de hipotecas | Fuera del scope |
+| Funcionalidad            | Razón de descarte              |
+| ------------------------ | ------------------------------ |
+| Conexión con bancos      | Complejidad regulatoria (PSD2) |
+| Pagos automáticos        | Responsabilidad legal          |
+| Asesoría financiera      | Requiere licencia              |
+| Marketplace de hipotecas | Fuera del scope                |
 
 ---
 
 ## Notas Técnicas
 
 ### Implementación de Planes
+
 ```typescript
 type PlanType = 'free' | 'premium' | 'pro';
 
@@ -209,6 +228,7 @@ const PREMIUM_FEATURES = [
 ```
 
 ### Tabla Supabase
+
 ```sql
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY,

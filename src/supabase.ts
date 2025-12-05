@@ -25,7 +25,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabaseClient: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseClient: SupabaseClient = createClient(
+  supabaseUrl,
+  supabaseAnonKey
+);
 
 // Auth functions
 export async function signInWithGoogle(): Promise<{ error: string | null }> {
@@ -112,7 +115,8 @@ export async function fetchPayments(): Promise<Payment[]> {
 
 export async function insertPayment(payment: PaymentInsert): Promise<void> {
   const user = await getCurrentUser();
-  const createdBy = user?.email === 'ciro.mora@gmail.com' ? 'lender' : 'borrower';
+  const createdBy =
+    user?.email === 'ciro.mora@gmail.com' ? 'lender' : 'borrower';
 
   const { error } = await supabaseClient
     .from('payments')
@@ -148,7 +152,9 @@ export async function fetchMortgage(): Promise<Mortgage | null> {
   return data as Mortgage;
 }
 
-export async function insertMortgage(mortgage: MortgageInsert): Promise<Mortgage> {
+export async function insertMortgage(
+  mortgage: MortgageInsert
+): Promise<Mortgage> {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error('User not authenticated');
@@ -166,7 +172,10 @@ export async function insertMortgage(mortgage: MortgageInsert): Promise<Mortgage
   return data as Mortgage;
 }
 
-export async function updateMortgage(id: string, mortgage: MortgageUpdate): Promise<Mortgage> {
+export async function updateMortgage(
+  id: string,
+  mortgage: MortgageUpdate
+): Promise<Mortgage> {
   const { data, error } = await supabaseClient
     .from('mortgages')
     .update(mortgage)
@@ -181,7 +190,10 @@ export async function updateMortgage(id: string, mortgage: MortgageUpdate): Prom
 }
 
 export async function removeMortgage(id: string): Promise<void> {
-  const { error } = await supabaseClient.from('mortgages').delete().eq('id', id);
+  const { error } = await supabaseClient
+    .from('mortgages')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw error;
@@ -189,7 +201,9 @@ export async function removeMortgage(id: string): Promise<void> {
 }
 
 // Mortgage conditions functions
-export async function fetchMortgageConditions(mortgageId: string): Promise<MortgageCondition[]> {
+export async function fetchMortgageConditions(
+  mortgageId: string
+): Promise<MortgageCondition[]> {
   const { data, error } = await supabaseClient
     .from('mortgage_conditions')
     .select('*')
@@ -202,7 +216,9 @@ export async function fetchMortgageConditions(mortgageId: string): Promise<Mortg
   return (data as MortgageCondition[]) ?? [];
 }
 
-export async function insertMortgageCondition(condition: MortgageConditionInsert): Promise<MortgageCondition> {
+export async function insertMortgageCondition(
+  condition: MortgageConditionInsert
+): Promise<MortgageCondition> {
   const { data, error } = await supabaseClient
     .from('mortgage_conditions')
     .insert(condition)
@@ -216,7 +232,10 @@ export async function insertMortgageCondition(condition: MortgageConditionInsert
 }
 
 export async function removeMortgageCondition(id: string): Promise<void> {
-  const { error } = await supabaseClient.from('mortgage_conditions').delete().eq('id', id);
+  const { error } = await supabaseClient
+    .from('mortgage_conditions')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw error;
@@ -224,7 +243,9 @@ export async function removeMortgageCondition(id: string): Promise<void> {
 }
 
 // Mortgage bonifications functions
-export async function fetchMortgageBonifications(mortgageId: string): Promise<MortgageBonification[]> {
+export async function fetchMortgageBonifications(
+  mortgageId: string
+): Promise<MortgageBonification[]> {
   const { data, error } = await supabaseClient
     .from('mortgage_bonifications')
     .select('*')
@@ -237,7 +258,9 @@ export async function fetchMortgageBonifications(mortgageId: string): Promise<Mo
   return (data as MortgageBonification[]) ?? [];
 }
 
-export async function insertMortgageBonification(bonification: MortgageBonificationInsert): Promise<MortgageBonification> {
+export async function insertMortgageBonification(
+  bonification: MortgageBonificationInsert
+): Promise<MortgageBonification> {
   const { data, error } = await supabaseClient
     .from('mortgage_bonifications')
     .insert(bonification)
@@ -250,7 +273,10 @@ export async function insertMortgageBonification(bonification: MortgageBonificat
   return data as MortgageBonification;
 }
 
-export async function updateMortgageBonification(id: string, updates: Partial<MortgageBonificationInsert>): Promise<MortgageBonification> {
+export async function updateMortgageBonification(
+  id: string,
+  updates: Partial<MortgageBonificationInsert>
+): Promise<MortgageBonification> {
   const { data, error } = await supabaseClient
     .from('mortgage_bonifications')
     .update(updates)
@@ -265,7 +291,10 @@ export async function updateMortgageBonification(id: string, updates: Partial<Mo
 }
 
 export async function removeMortgageBonification(id: string): Promise<void> {
-  const { error } = await supabaseClient.from('mortgage_bonifications').delete().eq('id', id);
+  const { error } = await supabaseClient
+    .from('mortgage_bonifications')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw error;
@@ -273,7 +302,9 @@ export async function removeMortgageBonification(id: string): Promise<void> {
 }
 
 // Mortgage shares functions
-export async function fetchMortgageShares(mortgageId: string): Promise<MortgageShare[]> {
+export async function fetchMortgageShares(
+  mortgageId: string
+): Promise<MortgageShare[]> {
   const { data, error } = await supabaseClient
     .from('mortgage_shares')
     .select('*')
@@ -285,7 +316,10 @@ export async function fetchMortgageShares(mortgageId: string): Promise<MortgageS
   return (data as MortgageShare[]) ?? [];
 }
 
-export async function fetchMortgageShareByRole(mortgageId: string, userRole: UserRole): Promise<MortgageShare | null> {
+export async function fetchMortgageShareByRole(
+  mortgageId: string,
+  userRole: UserRole
+): Promise<MortgageShare | null> {
   const { data, error } = await supabaseClient
     .from('mortgage_shares')
     .select('*')
@@ -302,7 +336,9 @@ export async function fetchMortgageShareByRole(mortgageId: string, userRole: Use
   return data as MortgageShare;
 }
 
-export async function insertMortgageShare(share: MortgageShareInsert): Promise<MortgageShare> {
+export async function insertMortgageShare(
+  share: MortgageShareInsert
+): Promise<MortgageShare> {
   const { data, error } = await supabaseClient
     .from('mortgage_shares')
     .insert(share)
@@ -315,7 +351,10 @@ export async function insertMortgageShare(share: MortgageShareInsert): Promise<M
   return data as MortgageShare;
 }
 
-export async function updateMortgageShare(id: string, updates: MortgageShareUpdate): Promise<MortgageShare> {
+export async function updateMortgageShare(
+  id: string,
+  updates: MortgageShareUpdate
+): Promise<MortgageShare> {
   const { data, error } = await supabaseClient
     .from('mortgage_shares')
     .update(updates)
@@ -330,7 +369,10 @@ export async function updateMortgageShare(id: string, updates: MortgageShareUpda
 }
 
 export async function removeMortgageShare(id: string): Promise<void> {
-  const { error } = await supabaseClient.from('mortgage_shares').delete().eq('id', id);
+  const { error } = await supabaseClient
+    .from('mortgage_shares')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw error;
@@ -344,7 +386,9 @@ export async function getCurrentUserRole(): Promise<UserRole> {
 }
 
 // Amortization requests functions
-export async function fetchAmortizationRequests(mortgageId: string): Promise<AmortizationRequest[]> {
+export async function fetchAmortizationRequests(
+  mortgageId: string
+): Promise<AmortizationRequest[]> {
   const { data, error } = await supabaseClient
     .from('amortization_requests')
     .select('*')
@@ -357,7 +401,9 @@ export async function fetchAmortizationRequests(mortgageId: string): Promise<Amo
   return (data as AmortizationRequest[]) ?? [];
 }
 
-export async function fetchPendingAmortizationRequests(mortgageId: string): Promise<AmortizationRequest[]> {
+export async function fetchPendingAmortizationRequests(
+  mortgageId: string
+): Promise<AmortizationRequest[]> {
   const { data, error } = await supabaseClient
     .from('amortization_requests')
     .select('*')
@@ -371,7 +417,9 @@ export async function fetchPendingAmortizationRequests(mortgageId: string): Prom
   return (data as AmortizationRequest[]) ?? [];
 }
 
-export async function insertAmortizationRequest(request: AmortizationRequestInsert): Promise<AmortizationRequest> {
+export async function insertAmortizationRequest(
+  request: AmortizationRequestInsert
+): Promise<AmortizationRequest> {
   const { data, error } = await supabaseClient
     .from('amortization_requests')
     .insert(request)
@@ -384,7 +432,10 @@ export async function insertAmortizationRequest(request: AmortizationRequestInse
   return data as AmortizationRequest;
 }
 
-export async function updateAmortizationRequest(id: string, updates: AmortizationRequestUpdate): Promise<AmortizationRequest> {
+export async function updateAmortizationRequest(
+  id: string,
+  updates: AmortizationRequestUpdate
+): Promise<AmortizationRequest> {
   const { data, error } = await supabaseClient
     .from('amortization_requests')
     .update(updates)

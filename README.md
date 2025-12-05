@@ -21,14 +21,15 @@ Aplicación web para el seguimiento y gestión de una hipoteca compartida entre 
 
 ## Documentación
 
-| Documento | Descripción |
-|-----------|-------------|
-| [Arquitectura](docs/architecture.md) | Estructura del proyecto y componentes principales |
-| [Base de datos](docs/database.md) | Esquema, tablas y políticas RLS |
-| [Sistema de participaciones](docs/shares.md) | Cómo funciona la división entre prestamista y prestatario |
-| [Flujo de amortización](docs/amortization.md) | Proceso de solicitud y aprobación de amortizaciones |
-| [Configuración](docs/setup.md) | Instrucciones de instalación y despliegue |
-| [Propuesta de funcionalidades](docs/features-proposal.md) | Plan Free vs Premium vs Pro |
+| Documento                                                 | Descripción                                               |
+| --------------------------------------------------------- | --------------------------------------------------------- |
+| [Arquitectura](docs/architecture.md)                      | Estructura del proyecto y componentes principales         |
+| [Base de datos](docs/database.md)                         | Esquema, tablas y políticas RLS                           |
+| [Sistema de participaciones](docs/shares.md)              | Cómo funciona la división entre prestamista y prestatario |
+| [Flujo de amortización](docs/amortization.md)             | Proceso de solicitud y aprobación de amortizaciones       |
+| [Configuración](docs/setup.md)                            | Instrucciones de instalación y despliegue                 |
+| [Propuesta de funcionalidades](docs/features-proposal.md) | Plan Free vs Premium vs Pro                               |
+| [Quality Review](docs/quality-review.md)                  | Code quality audit and recommendations                    |
 
 ## Inicio Rápido
 

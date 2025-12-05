@@ -27,10 +27,17 @@ export interface Mortgage {
   updated_at: string;
 }
 
-export type MortgageInsert = Omit<Mortgage, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+export type MortgageInsert = Omit<
+  Mortgage,
+  'id' | 'user_id' | 'created_at' | 'updated_at'
+>;
 export type MortgageUpdate = Partial<MortgageInsert>;
 
-export type ConditionType = 'promotional_rate' | 'fixed_rate_period' | 'grace_period' | 'other';
+export type ConditionType =
+  | 'promotional_rate'
+  | 'fixed_rate_period'
+  | 'grace_period'
+  | 'other';
 
 export interface MortgageCondition {
   id: string;
@@ -43,9 +50,19 @@ export interface MortgageCondition {
   created_at: string;
 }
 
-export type MortgageConditionInsert = Omit<MortgageCondition, 'id' | 'created_at'>;
+export type MortgageConditionInsert = Omit<
+  MortgageCondition,
+  'id' | 'created_at'
+>;
 
-export type BonificationType = 'payroll' | 'home_insurance' | 'life_insurance' | 'pension_fund' | 'credit_card' | 'direct_debit' | 'other';
+export type BonificationType =
+  | 'payroll'
+  | 'home_insurance'
+  | 'life_insurance'
+  | 'pension_fund'
+  | 'credit_card'
+  | 'direct_debit'
+  | 'other';
 
 export interface MortgageBonification {
   id: string;
@@ -57,7 +74,10 @@ export interface MortgageBonification {
   created_at: string;
 }
 
-export type MortgageBonificationInsert = Omit<MortgageBonification, 'id' | 'created_at'>;
+export type MortgageBonificationInsert = Omit<
+  MortgageBonification,
+  'id' | 'created_at'
+>;
 
 export interface AmortizationPayment {
   paymentNumber: number;
@@ -84,8 +104,13 @@ export interface MortgageShare {
   updated_at: string;
 }
 
-export type MortgageShareInsert = Omit<MortgageShare, 'id' | 'created_at' | 'updated_at'>;
-export type MortgageShareUpdate = Partial<Omit<MortgageShareInsert, 'mortgage_id' | 'user_role'>>;
+export type MortgageShareInsert = Omit<
+  MortgageShare,
+  'id' | 'created_at' | 'updated_at'
+>;
+export type MortgageShareUpdate = Partial<
+  Omit<MortgageShareInsert, 'mortgage_id' | 'user_role'>
+>;
 
 export type AmortizationRequestStatus = 'pending' | 'approved' | 'rejected';
 
@@ -102,7 +127,10 @@ export interface AmortizationRequest {
   reviewed_at: string | null;
 }
 
-export type AmortizationRequestInsert = Omit<AmortizationRequest, 'id' | 'created_at' | 'reviewed_at' | 'reviewed_by' | 'status'> & {
+export type AmortizationRequestInsert = Omit<
+  AmortizationRequest,
+  'id' | 'created_at' | 'reviewed_at' | 'reviewed_by' | 'status'
+> & {
   status?: AmortizationRequestStatus;
 };
 

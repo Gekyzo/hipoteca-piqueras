@@ -30,13 +30,19 @@ function getTodayDate(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-export function PaymentForm({ onAddPayment, suggestedAmount, isLoading = false }: PaymentFormProps) {
+export function PaymentForm({
+  onAddPayment,
+  suggestedAmount,
+  isLoading = false,
+}: PaymentFormProps) {
   const [paymentDate, setPaymentDate] = useState(getTodayDate());
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
 
   const parseNumber = (value: string): number | null => {
-    if (!value.trim()) return null;
+    if (!value.trim()) {
+      return null;
+    }
     const num = parseFloat(value);
     return isNaN(num) ? null : num;
   };

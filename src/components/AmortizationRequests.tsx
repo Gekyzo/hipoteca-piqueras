@@ -45,8 +45,8 @@ export function AmortizationRequests({
 }: AmortizationRequestsProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending');
+  const pendingRequests = requests.filter((r) => r.status === 'pending');
+  const processedRequests = requests.filter((r) => r.status !== 'pending');
 
   const handleApprove = async (request: AmortizationRequest) => {
     setProcessingId(request.id);
@@ -57,7 +57,7 @@ export function AmortizationRequests({
         return;
       }
 
-      const share = shares.find(s => s.id === request.share_id);
+      const share = shares.find((s) => s.id === request.share_id);
       if (!share) {
         toast.error('No se encontró la participación asociada');
         return;
@@ -71,7 +71,9 @@ export function AmortizationRequests({
         user.email
       );
 
-      toast.success(`Amortización de ${formatCurrency(request.amount)} aprobada`);
+      toast.success(
+        `Amortización de ${formatCurrency(request.amount)} aprobada`
+      );
       onRequestUpdated?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error desconocido';
@@ -120,14 +122,16 @@ export function AmortizationRequests({
           <div>
             <p className="text-sm font-medium mb-3">Pendientes de aprobación</p>
             <div className="space-y-3">
-              {pendingRequests.map(request => (
+              {pendingRequests.map((request) => (
                 <div
                   key={request.id}
                   className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="text-lg font-semibold">{formatCurrency(request.amount)}</p>
+                      <p className="text-lg font-semibold">
+                        {formatCurrency(request.amount)}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Solicitado por: {request.requested_by}
                       </p>
@@ -146,7 +150,9 @@ export function AmortizationRequests({
                       size="sm"
                       className="flex-1"
                     >
-                      {processingId === request.id ? 'Procesando...' : 'Aprobar'}
+                      {processingId === request.id
+                        ? 'Procesando...'
+                        : 'Aprobar'}
                     </Button>
                     <Button
                       onClick={() => handleReject(request)}
@@ -169,7 +175,7 @@ export function AmortizationRequests({
           <div>
             <p className="text-sm font-medium mb-3">Historial</p>
             <div className="space-y-2">
-              {processedRequests.slice(0, 10).map(request => (
+              {processedRequests.slice(0, 10).map((request) => (
                 <div
                   key={request.id}
                   className={`p-3 rounded-lg border ${
@@ -180,9 +186,12 @@ export function AmortizationRequests({
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">{formatCurrency(request.amount)}</p>
+                      <p className="font-medium">
+                        {formatCurrency(request.amount)}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {request.requested_by} · {formatDate(request.created_at)}
+                        {request.requested_by} ·{' '}
+                        {formatDate(request.created_at)}
                       </p>
                     </div>
                     <span
@@ -197,7 +206,8 @@ export function AmortizationRequests({
                   </div>
                   {request.reviewed_by && request.reviewed_at && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Revisado por {request.reviewed_by} el {formatDate(request.reviewed_at)}
+                      Revisado por {request.reviewed_by} el{' '}
+                      {formatDate(request.reviewed_at)}
                     </p>
                   )}
                 </div>
