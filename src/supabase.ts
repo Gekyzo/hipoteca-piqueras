@@ -1,8 +1,12 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import type { Payment, PaymentInsert } from '@/types';
 
-const supabaseUrl = 'https://szqdcbldetkvjldeaane.supabase.co';
-const supabaseAnonKey = 'sb_publishable_gfcp6RmZh1OSWVVyfso_Dw_qJI4bFjV';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
 const supabaseClient: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
