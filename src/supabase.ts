@@ -12,10 +12,15 @@ const supabaseClient: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey
 
 // Auth functions
 export async function signInWithGoogle(): Promise<{ error: string | null }> {
+  const isLocalhost = window.location.hostname === 'localhost';
+  const redirectTo = isLocalhost
+    ? window.location.origin
+    : `${window.location.origin}/hipoteca-piqueras/`;
+
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/hipoteca-piqueras/`,
+      redirectTo,
     },
   });
 
