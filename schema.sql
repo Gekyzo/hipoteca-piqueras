@@ -102,3 +102,39 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_mortgages_updated_at
   BEFORE UPDATE ON mortgages
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Tabla de condiciones especiales de hipoteca
+CREATE TABLE mortgage_conditions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  mortgage_id UUID REFERENCES mortgages(id) ON DELETE CASCADE NOT NULL,          -- Hipoteca a la que pertenece
+  condition_type TEXT NOT NULL CHECK (condition_type IN ('promotional_rate', 'fixed_rate_period', 'grace_period', 'other')),
+  interest_rate DECIMAL(5, 3),                                                    -- Tasa de interés especial (si aplica)
+  start_month INTEGER NOT NULL DEFAULT 1,                                         -- Mes de inicio (1 = primer mes)
+  end_month INTEGER NOT NULL,                                                     -- Mes de finalización
+  description TEXT,                                                               -- Descripción de la condición
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security for mortgage_conditions
+ALTER TABLE mortgage_conditions ENABLE ROW LEVEL SECURITY;
+
+-- Mortgage conditions: users can only access conditions of their own mortgages
+CREATE POLICY "Users can view own mortgage conditions" ON mortgage_conditions
+  FOR SELECT TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can insert own mortgage conditions" ON mortgage_conditions
+  FOR INSERT TO authenticated
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can update own mortgage conditions" ON mortgage_conditions
+  FOR UPDATE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()))
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can delete own mortgage conditions" ON mortgage_conditions
+  FOR DELETE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+-- Index for faster queries by mortgage_id
+CREATE INDEX idx_mortgage_conditions_mortgage_id ON mortgage_conditions(mortgage_id);

@@ -69,6 +69,18 @@
     "paidInterest": "Intereses Pagados",
     "progress": "Progreso",
     "endDate": "Fecha de Finalización",
-    "notes": "Notas"
+    "notes": "Notas",
+    "conditions": {
+      "title": "Condiciones Especiales",
+      "noConditions": "Sin condiciones especiales",
+      "months": "Meses",
+      "rate": "Tasa",
+      "types": {
+        "promotional_rate": "Tasa Promocional",
+        "fixed_rate_period": "Período de Tasa Fija",
+        "grace_period": "Período de Carencia",
+        "other": "Otra"
+      }
+    }
   }
 }

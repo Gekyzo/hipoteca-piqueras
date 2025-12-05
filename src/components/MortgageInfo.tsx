@@ -7,11 +7,12 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
-import type { Mortgage, Payment } from '@/types';
+import type { Mortgage, Payment, MortgageCondition, ConditionType } from '@/types';
 
 interface MortgageInfoProps {
   mortgage: Mortgage | null;
   payments: Payment[];
+  conditions: MortgageCondition[];
   isLoading?: boolean;
 }
 
@@ -30,11 +31,84 @@ function formatPercent(rate: number): string {
   return `${rate.toFixed(2)}%`;
 }
 
-function calculateTotalInterest(principal: number, rate: number, termMonths: number): number {
-  const monthlyRate = rate / 100 / 12;
-  const monthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
-    (Math.pow(1 + monthlyRate, termMonths) - 1);
-  return monthlyPayment * termMonths - principal;
+interface RateSchedule {
+  rate: number;
+  months: number;
+}
+
+function calculateTotalInterestWithConditions(
+  principal: number,
+  baseRate: number,
+  termMonths: number,
+  conditions: MortgageCondition[]
+): number {
+  // Build rate schedule: which rate applies to each month
+  const rateSchedule: RateSchedule[] = [];
+  let currentMonth = 1;
+
+  // Sort conditions by start_month
+  const sortedConditions = [...conditions]
+    .filter(c => c.interest_rate !== null)
+    .sort((a, b) => a.start_month - b.start_month);
+
+  while (currentMonth <= termMonths) {
+    // Find if any condition applies to this month
+    const applicableCondition = sortedConditions.find(
+      c => currentMonth >= c.start_month && currentMonth <= c.end_month
+    );
+
+    const rate = applicableCondition?.interest_rate ?? baseRate;
+
+    // Find how many consecutive months have the same rate
+    let endMonth = currentMonth;
+    while (endMonth < termMonths) {
+      const nextCondition = sortedConditions.find(
+        c => (endMonth + 1) >= c.start_month && (endMonth + 1) <= c.end_month
+      );
+      const nextRate = nextCondition?.interest_rate ?? baseRate;
+      if (nextRate !== rate) break;
+      endMonth++;
+    }
+
+    rateSchedule.push({
+      rate,
+      months: endMonth - currentMonth + 1,
+    });
+
+    currentMonth = endMonth + 1;
+  }
+
+  // Calculate interest using amortization with variable rates
+  let balance = principal;
+  let totalInterest = 0;
+  let remainingMonths = termMonths;
+
+  for (const schedule of rateSchedule) {
+    const monthlyRate = schedule.rate / 100 / 12;
+
+    if (monthlyRate === 0) {
+      // Grace period: no interest, only principal
+      const monthlyPrincipal = balance / remainingMonths;
+      balance -= monthlyPrincipal * schedule.months;
+      remainingMonths -= schedule.months;
+      continue;
+    }
+
+    // Calculate monthly payment for remaining balance and remaining term
+    const monthlyPayment = (balance * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
+      (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+
+    // Amortize for the months in this schedule
+    for (let i = 0; i < schedule.months && balance > 0; i++) {
+      const interestPayment = balance * monthlyRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      totalInterest += interestPayment;
+      balance -= principalPayment;
+      remainingMonths--;
+    }
+  }
+
+  return totalInterest;
 }
 
 function calculateEndDate(startDate: string, termMonths: number): Date {
@@ -42,9 +116,15 @@ function calculateEndDate(startDate: string, termMonths: number): Date {
   return new Date(start.setMonth(start.getMonth() + termMonths));
 }
 
+function getConditionTypeLabel(type: ConditionType): string {
+  const labels = t.mortgage.conditions.types as Record<ConditionType, string>;
+  return labels[type] ?? type;
+}
+
 export function MortgageInfo({
   mortgage,
   payments,
+  conditions,
   isLoading = false,
 }: MortgageInfoProps) {
   if (isLoading) {
@@ -67,10 +147,11 @@ export function MortgageInfo({
     );
   }
 
-  const totalInterest = calculateTotalInterest(
+  const totalInterest = calculateTotalInterestWithConditions(
     mortgage.total_amount,
     mortgage.interest_rate,
-    mortgage.term_months
+    mortgage.term_months,
+    conditions
   );
   const totalPayments = mortgage.total_amount + totalInterest;
   const endDate = calculateEndDate(mortgage.start_date, mortgage.term_months);
@@ -122,6 +203,41 @@ export function MortgageInfo({
             <InfoItem label={t.mortgage.paidInterest} value={formatCurrency(paidInterest)} highlight="text-amber-600" />
           </div>
         </div>
+
+        {conditions.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm font-medium mb-3">{t.mortgage.conditions.title}</p>
+              <div className="space-y-2">
+                {conditions.map((condition) => (
+                  <div
+                    key={condition.id}
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">
+                        {getConditionTypeLabel(condition.condition_type)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t.mortgage.conditions.months} {condition.start_month} - {condition.end_month}
+                        {condition.description && ` · ${condition.description}`}
+                      </p>
+                    </div>
+                    {condition.interest_rate !== null && (
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">{t.mortgage.conditions.rate}</p>
+                        <p className="font-semibold text-green-600">
+                          {formatPercent(condition.interest_rate)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {mortgage.notes && (
           <>

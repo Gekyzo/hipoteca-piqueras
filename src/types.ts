@@ -30,4 +30,19 @@ export interface Mortgage {
 export type MortgageInsert = Omit<Mortgage, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
 export type MortgageUpdate = Partial<MortgageInsert>;
 
+export type ConditionType = 'promotional_rate' | 'fixed_rate_period' | 'grace_period' | 'other';
+
+export interface MortgageCondition {
+  id: string;
+  mortgage_id: string;
+  condition_type: ConditionType;
+  interest_rate: number | null;
+  start_month: number;
+  end_month: number;
+  description: string | null;
+  created_at: string;
+}
+
+export type MortgageConditionInsert = Omit<MortgageCondition, 'id' | 'created_at'>;
+
 export type ToastType = 'info' | 'error' | 'success';

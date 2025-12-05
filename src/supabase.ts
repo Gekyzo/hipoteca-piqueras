@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import type { Payment, PaymentInsert, Mortgage, MortgageInsert, MortgageUpdate } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageInsert, MortgageUpdate, MortgageCondition, MortgageConditionInsert } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -167,6 +167,41 @@ export async function updateMortgage(id: string, mortgage: MortgageUpdate): Prom
 
 export async function removeMortgage(id: string): Promise<void> {
   const { error } = await supabaseClient.from('mortgages').delete().eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+// Mortgage conditions functions
+export async function fetchMortgageConditions(mortgageId: string): Promise<MortgageCondition[]> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_conditions')
+    .select('*')
+    .eq('mortgage_id', mortgageId)
+    .order('start_month', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+  return (data as MortgageCondition[]) ?? [];
+}
+
+export async function insertMortgageCondition(condition: MortgageConditionInsert): Promise<MortgageCondition> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_conditions')
+    .insert(condition)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as MortgageCondition;
+}
+
+export async function removeMortgageCondition(id: string): Promise<void> {
+  const { error } = await supabaseClient.from('mortgage_conditions').delete().eq('id', id);
 
   if (error) {
     throw error;

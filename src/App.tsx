@@ -6,10 +6,11 @@ import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
-import type { Payment, PaymentInsert, Mortgage } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageCondition } from '@/types';
 import {
   fetchPayments,
   fetchMortgage,
+  fetchMortgageConditions,
   insertPayment,
   removePayment,
   signIn,
@@ -26,6 +27,7 @@ export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mortgage, setMortgage] = useState<Mortgage | null>(null);
+  const [conditions, setConditions] = useState<MortgageCondition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
@@ -48,6 +50,12 @@ export default function App() {
     try {
       const data = await fetchMortgage();
       setMortgage(data);
+      if (data) {
+        const conditionsData = await fetchMortgageConditions(data.id);
+        setConditions(conditionsData);
+      } else {
+        setConditions([]);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : t.common.unknownError;
       toast.error(`${t.toast.loadMortgageError}: ${message}`);
@@ -84,6 +92,7 @@ export default function App() {
         setUserEmail(null);
         setPayments([]);
         setMortgage(null);
+        setConditions([]);
       }
     });
 
@@ -184,6 +193,7 @@ export default function App() {
             <MortgageInfo
               mortgage={mortgage}
               payments={payments}
+              conditions={conditions}
               isLoading={isLoadingMortgage}
             />
             <PaymentForm onAddPayment={handleAddPayment} />
