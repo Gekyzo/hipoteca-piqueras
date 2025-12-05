@@ -105,13 +105,11 @@ export async function fetchPayments(): Promise<Payment[]> {
 
 export async function insertPayment(payment: PaymentInsert): Promise<void> {
   const user = await getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
+  const createdBy = user?.email === 'ciro.mora@gmail.com' ? 'lender' : 'borrower';
 
   const { error } = await supabaseClient
     .from('payments')
-    .insert({ ...payment, user_id: user.id });
+    .insert({ ...payment, created_by: createdBy });
 
   if (error) {
     throw error;
