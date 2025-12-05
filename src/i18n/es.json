@@ -64,6 +64,7 @@
     "termMonths": "Plazo (meses)",
     "termYears": "Plazo (años)",
     "monthlyPayment": "Cuota Mensual",
+    "effectiveMonthlyPayment": "Cuota Efectiva",
     "totalInterest": "Total Intereses",
     "totalPayments": "Total a Pagar",
     "remainingBalance": "Saldo Pendiente",

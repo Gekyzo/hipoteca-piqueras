@@ -35,6 +35,19 @@ function formatPercent(rate: number): string {
   return `${rate.toFixed(2)}%`;
 }
 
+function calculateMonthlyPayment(
+  principal: number,
+  annualRate: number,
+  termMonths: number
+): number {
+  if (annualRate === 0) {
+    return principal / termMonths;
+  }
+  const monthlyRate = annualRate / 100 / 12;
+  return (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+    (Math.pow(1 + monthlyRate, termMonths) - 1);
+}
+
 interface RateSchedule {
   rate: number;
   months: number;
@@ -167,6 +180,11 @@ export function MortgageInfo({
 
   const totalBonification = calculateTotalBonification(bonifications);
   const effectiveRate = Math.max(0, mortgage.interest_rate - totalBonification);
+  const effectiveMonthlyPayment = calculateMonthlyPayment(
+    mortgage.total_amount,
+    effectiveRate,
+    mortgage.term_months
+  );
 
   const totalInterest = calculateTotalInterestWithConditions(
     mortgage.total_amount,
@@ -204,6 +222,9 @@ export function MortgageInfo({
             <InfoItem label={t.mortgage.bonifications.effectiveRate} value={formatPercent(effectiveRate)} highlight="text-green-600" />
           )}
           <InfoItem label={t.mortgage.monthlyPayment} value={formatCurrency(mortgage.monthly_payment)} />
+          {totalBonification > 0 && (
+            <InfoItem label={t.mortgage.effectiveMonthlyPayment} value={formatCurrency(effectiveMonthlyPayment)} highlight="text-green-600" />
+          )}
           <InfoItem label={t.mortgage.startDate} value={formatDate(mortgage.start_date)} />
           <InfoItem label={t.mortgage.endDate} value={formatDate(endDate.toISOString())} />
           <InfoItem label={t.mortgage.termYears} value={`${(mortgage.term_months / 12).toFixed(1)} años`} />
