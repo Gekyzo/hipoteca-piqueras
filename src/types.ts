@@ -45,6 +45,20 @@ export interface MortgageCondition {
 
 export type MortgageConditionInsert = Omit<MortgageCondition, 'id' | 'created_at'>;
 
+export type BonificationType = 'payroll' | 'home_insurance' | 'life_insurance' | 'pension_fund' | 'credit_card' | 'direct_debit' | 'other';
+
+export interface MortgageBonification {
+  id: string;
+  mortgage_id: string;
+  bonification_type: BonificationType;
+  rate_reduction: number;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export type MortgageBonificationInsert = Omit<MortgageBonification, 'id' | 'created_at'>;
+
 export interface AmortizationPayment {
   paymentNumber: number;
   date: Date;

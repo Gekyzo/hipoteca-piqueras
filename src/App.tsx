@@ -15,11 +15,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/i18n';
-import type { Payment, PaymentInsert, Mortgage, MortgageCondition } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification } from '@/types';
 import {
   fetchPayments,
   fetchMortgage,
   fetchMortgageConditions,
+  fetchMortgageBonifications,
   insertPayment,
   removePayment,
   signIn,
@@ -38,6 +39,7 @@ export default function App() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mortgage, setMortgage] = useState<Mortgage | null>(null);
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
+  const [bonifications, setBonifications] = useState<MortgageBonification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
@@ -62,10 +64,15 @@ export default function App() {
       const data = await fetchMortgage();
       setMortgage(data);
       if (data) {
-        const conditionsData = await fetchMortgageConditions(data.id);
+        const [conditionsData, bonificationsData] = await Promise.all([
+          fetchMortgageConditions(data.id),
+          fetchMortgageBonifications(data.id),
+        ]);
         setConditions(conditionsData);
+        setBonifications(bonificationsData);
       } else {
         setConditions([]);
+        setBonifications([]);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t.common.unknownError;
@@ -104,6 +111,7 @@ export default function App() {
         setPayments([]);
         setMortgage(null);
         setConditions([]);
+        setBonifications([]);
       }
     });
 
@@ -228,6 +236,7 @@ export default function App() {
                 mortgage={mortgage}
                 payments={payments}
                 conditions={conditions}
+                bonifications={bonifications}
                 isLoading={isLoadingMortgage}
                 onNewPayment={() => setActiveTab('payments')}
               />
@@ -249,6 +258,7 @@ export default function App() {
               <AmortizationSchedule
                 mortgage={mortgage}
                 conditions={conditions}
+                bonifications={bonifications}
                 payments={payments}
                 isLoading={isLoadingMortgage}
               />

@@ -1,5 +1,15 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import type { Payment, PaymentInsert, Mortgage, MortgageInsert, MortgageUpdate, MortgageCondition, MortgageConditionInsert } from '@/types';
+import type {
+  Payment,
+  PaymentInsert,
+  Mortgage,
+  MortgageInsert,
+  MortgageUpdate,
+  MortgageCondition,
+  MortgageConditionInsert,
+  MortgageBonification,
+  MortgageBonificationInsert,
+} from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -202,6 +212,55 @@ export async function insertMortgageCondition(condition: MortgageConditionInsert
 
 export async function removeMortgageCondition(id: string): Promise<void> {
   const { error } = await supabaseClient.from('mortgage_conditions').delete().eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+// Mortgage bonifications functions
+export async function fetchMortgageBonifications(mortgageId: string): Promise<MortgageBonification[]> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_bonifications')
+    .select('*')
+    .eq('mortgage_id', mortgageId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+  return (data as MortgageBonification[]) ?? [];
+}
+
+export async function insertMortgageBonification(bonification: MortgageBonificationInsert): Promise<MortgageBonification> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_bonifications')
+    .insert(bonification)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as MortgageBonification;
+}
+
+export async function updateMortgageBonification(id: string, updates: Partial<MortgageBonificationInsert>): Promise<MortgageBonification> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_bonifications')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as MortgageBonification;
+}
+
+export async function removeMortgageBonification(id: string): Promise<void> {
+  const { error } = await supabaseClient.from('mortgage_bonifications').delete().eq('id', id);
 
   if (error) {
     throw error;

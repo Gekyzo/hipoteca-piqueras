@@ -1,24 +1,37 @@
-import type { Mortgage, MortgageCondition, AmortizationPayment } from '@/types';
+import type { Mortgage, MortgageCondition, MortgageBonification, AmortizationPayment } from '@/types';
+
+// Calculate total rate reduction from active bonifications
+export function calculateTotalBonification(bonifications: MortgageBonification[]): number {
+  return bonifications
+    .filter(b => b.is_active)
+    .reduce((total, b) => total + b.rate_reduction, 0);
+}
 
 export function calculateAmortizationSchedule(
   mortgage: Mortgage,
-  conditions: MortgageCondition[]
+  conditions: MortgageCondition[],
+  bonifications: MortgageBonification[] = []
 ): AmortizationPayment[] {
   const schedule: AmortizationPayment[] = [];
   const startDate = new Date(mortgage.start_date);
   let balance = mortgage.total_amount;
+
+  // Calculate total bonification (rate reduction)
+  const totalBonification = calculateTotalBonification(bonifications);
 
   // Sort conditions by start_month
   const sortedConditions = [...conditions]
     .filter(c => c.interest_rate !== null)
     .sort((a, b) => a.start_month - b.start_month);
 
-  // Helper to get the rate for a specific month
+  // Helper to get the rate for a specific month (with bonification applied)
   const getRateForMonth = (month: number): number => {
     const condition = sortedConditions.find(
       c => month >= c.start_month && month <= c.end_month
     );
-    return condition?.interest_rate ?? mortgage.interest_rate;
+    const baseRate = condition?.interest_rate ?? mortgage.interest_rate;
+    // Apply bonification reduction, ensuring rate doesn't go below 0
+    return Math.max(0, baseRate - totalBonification);
   };
 
   // Calculate monthly payment for a given balance, rate, and remaining months

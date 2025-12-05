@@ -83,6 +83,24 @@
         "grace_period": "Período de Carencia",
         "other": "Otra"
       }
+    },
+    "bonifications": {
+      "title": "Bonificaciones",
+      "noBonifications": "Sin bonificaciones",
+      "reduction": "Reducción",
+      "active": "Activa",
+      "inactive": "Inactiva",
+      "effectiveRate": "Tasa Efectiva",
+      "totalReduction": "Reducción Total",
+      "types": {
+        "payroll": "Domiciliación de Nómina",
+        "home_insurance": "Seguro de Hogar",
+        "life_insurance": "Seguro de Vida",
+        "pension_fund": "Plan de Pensiones",
+        "credit_card": "Tarjeta de Crédito",
+        "direct_debit": "Domiciliación de Recibos",
+        "other": "Otra"
+      }
     }
   },
   "schedule": {

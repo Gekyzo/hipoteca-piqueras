@@ -8,12 +8,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
-import type { Mortgage, Payment, MortgageCondition, ConditionType } from '@/types';
+import type { Mortgage, Payment, MortgageCondition, MortgageBonification, ConditionType, BonificationType } from '@/types';
+import { calculateTotalBonification } from '@/lib/amortization';
 
 interface MortgageInfoProps {
   mortgage: Mortgage | null;
   payments: Payment[];
   conditions: MortgageCondition[];
+  bonifications: MortgageBonification[];
   isLoading?: boolean;
   onNewPayment?: () => void;
 }
@@ -42,8 +44,12 @@ function calculateTotalInterestWithConditions(
   principal: number,
   baseRate: number,
   termMonths: number,
-  conditions: MortgageCondition[]
+  conditions: MortgageCondition[],
+  bonifications: MortgageBonification[]
 ): number {
+  // Calculate total bonification (rate reduction)
+  const totalBonification = calculateTotalBonification(bonifications);
+
   // Build rate schedule: which rate applies to each month
   const rateSchedule: RateSchedule[] = [];
   let currentMonth = 1;
@@ -59,7 +65,9 @@ function calculateTotalInterestWithConditions(
       c => currentMonth >= c.start_month && currentMonth <= c.end_month
     );
 
-    const rate = applicableCondition?.interest_rate ?? baseRate;
+    const conditionRate = applicableCondition?.interest_rate ?? baseRate;
+    // Apply bonification reduction
+    const rate = Math.max(0, conditionRate - totalBonification);
 
     // Find how many consecutive months have the same rate
     let endMonth = currentMonth;
@@ -67,7 +75,8 @@ function calculateTotalInterestWithConditions(
       const nextCondition = sortedConditions.find(
         c => (endMonth + 1) >= c.start_month && (endMonth + 1) <= c.end_month
       );
-      const nextRate = nextCondition?.interest_rate ?? baseRate;
+      const nextConditionRate = nextCondition?.interest_rate ?? baseRate;
+      const nextRate = Math.max(0, nextConditionRate - totalBonification);
       if (nextRate !== rate) break;
       endMonth++;
     }
@@ -123,10 +132,16 @@ function getConditionTypeLabel(type: ConditionType): string {
   return labels[type] ?? type;
 }
 
+function getBonificationTypeLabel(type: BonificationType): string {
+  const labels = t.mortgage.bonifications.types as Record<BonificationType, string>;
+  return labels[type] ?? type;
+}
+
 export function MortgageInfo({
   mortgage,
   payments,
   conditions,
+  bonifications,
   isLoading = false,
   onNewPayment,
 }: MortgageInfoProps) {
@@ -150,11 +165,15 @@ export function MortgageInfo({
     );
   }
 
+  const totalBonification = calculateTotalBonification(bonifications);
+  const effectiveRate = Math.max(0, mortgage.interest_rate - totalBonification);
+
   const totalInterest = calculateTotalInterestWithConditions(
     mortgage.total_amount,
     mortgage.interest_rate,
     mortgage.term_months,
-    conditions
+    conditions,
+    bonifications
   );
   const totalPayments = mortgage.total_amount + totalInterest;
   const endDate = calculateEndDate(mortgage.start_date, mortgage.term_months);
@@ -181,6 +200,9 @@ export function MortgageInfo({
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <InfoItem label={t.mortgage.totalAmount} value={formatCurrency(mortgage.total_amount)} />
           <InfoItem label={t.mortgage.interestRate} value={formatPercent(mortgage.interest_rate)} />
+          {totalBonification > 0 && (
+            <InfoItem label={t.mortgage.bonifications.effectiveRate} value={formatPercent(effectiveRate)} highlight="text-green-600" />
+          )}
           <InfoItem label={t.mortgage.monthlyPayment} value={formatCurrency(mortgage.monthly_payment)} />
           <InfoItem label={t.mortgage.startDate} value={formatDate(mortgage.start_date)} />
           <InfoItem label={t.mortgage.endDate} value={formatDate(endDate.toISOString())} />
@@ -244,6 +266,46 @@ export function MortgageInfo({
                     )}
                   </div>
                 ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {bonifications.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm font-medium mb-3">{t.mortgage.bonifications.title}</p>
+              <div className="space-y-2">
+                {bonifications.map((bonification) => (
+                  <div
+                    key={bonification.id}
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      bonification.is_active ? 'bg-green-50 dark:bg-green-950/20' : 'bg-muted opacity-60'
+                    }`}
+                  >
+                    <div>
+                      <p className="font-medium text-sm">
+                        {getBonificationTypeLabel(bonification.bonification_type)}
+                      </p>
+                      {bonification.description && (
+                        <p className="text-xs text-muted-foreground">{bonification.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">{t.mortgage.bonifications.reduction}</p>
+                      <p className={`font-semibold ${bonification.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        -{formatPercent(bonification.rate_reduction)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {totalBonification > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <p className="text-sm font-medium">{t.mortgage.bonifications.totalReduction}</p>
+                    <p className="font-semibold text-green-600">-{formatPercent(totalBonification)}</p>
+                  </div>
+                )}
               </div>
             </div>
           </>

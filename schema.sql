@@ -138,3 +138,38 @@ CREATE POLICY "Users can delete own mortgage conditions" ON mortgage_conditions
 
 -- Index for faster queries by mortgage_id
 CREATE INDEX idx_mortgage_conditions_mortgage_id ON mortgage_conditions(mortgage_id);
+
+-- Tabla de bonificaciones de hipoteca (descuentos permanentes en la tasa)
+CREATE TABLE mortgage_bonifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  mortgage_id UUID REFERENCES mortgages(id) ON DELETE CASCADE NOT NULL,          -- Hipoteca a la que pertenece
+  bonification_type TEXT NOT NULL CHECK (bonification_type IN ('payroll', 'home_insurance', 'life_insurance', 'pension_fund', 'credit_card', 'direct_debit', 'other')),
+  rate_reduction DECIMAL(5, 3) NOT NULL,                                          -- Reducción de tasa (ej: 0.40 para -0.40%)
+  description TEXT,                                                               -- Descripción de la bonificación
+  is_active BOOLEAN DEFAULT TRUE,                                                 -- Si la bonificación está activa
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security for mortgage_bonifications
+ALTER TABLE mortgage_bonifications ENABLE ROW LEVEL SECURITY;
+
+-- Mortgage bonifications: users can only access bonifications of their own mortgages
+CREATE POLICY "Users can view own mortgage bonifications" ON mortgage_bonifications
+  FOR SELECT TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can insert own mortgage bonifications" ON mortgage_bonifications
+  FOR INSERT TO authenticated
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can update own mortgage bonifications" ON mortgage_bonifications
+  FOR UPDATE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()))
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can delete own mortgage bonifications" ON mortgage_bonifications
+  FOR DELETE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+-- Index for faster queries by mortgage_id
+CREATE INDEX idx_mortgage_bonifications_mortgage_id ON mortgage_bonifications(mortgage_id);

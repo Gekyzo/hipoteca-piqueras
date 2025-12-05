@@ -14,12 +14,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { t } from '@/i18n';
-import type { Mortgage, MortgageCondition, Payment } from '@/types';
+import type { Mortgage, MortgageCondition, MortgageBonification, Payment } from '@/types';
 import { calculateAmortizationSchedule, getScheduleSummary } from '@/lib/amortization';
 
 interface AmortizationScheduleProps {
   mortgage: Mortgage | null;
   conditions: MortgageCondition[];
+  bonifications: MortgageBonification[];
   payments: Payment[];
   isLoading?: boolean;
 }
@@ -45,13 +46,14 @@ function formatPercent(rate: number): string {
 export function AmortizationSchedule({
   mortgage,
   conditions,
+  bonifications,
   payments,
   isLoading = false,
 }: AmortizationScheduleProps) {
   const schedule = useMemo(() => {
     if (!mortgage) return [];
-    return calculateAmortizationSchedule(mortgage, conditions);
-  }, [mortgage, conditions]);
+    return calculateAmortizationSchedule(mortgage, conditions, bonifications);
+  }, [mortgage, conditions, bonifications]);
 
   const summary = useMemo(() => {
     return getScheduleSummary(schedule);
