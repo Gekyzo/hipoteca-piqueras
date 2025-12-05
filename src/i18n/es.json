@@ -7,8 +7,10 @@
   "app": {
     "title": "Seguimiento de Hipoteca",
     "logout": "Cerrar Sesión",
-    "tabPayments": "Pagos",
-    "tabMortgage": "Hipoteca"
+    "tabPayments": "Nuevo Pago",
+    "tabMortgage": "Hipoteca",
+    "tabHistory": "Historial",
+    "tabSchedule": "Cuotas"
   },
   "auth": {
     "title": "Iniciar Sesión",
@@ -27,7 +29,7 @@
     "addDescription": "Registra un nuevo pago de hipoteca",
     "historyTitle": "Historial de Pagos",
     "loading": "Cargando pagos...",
-    "empty": "Aún no hay pagos. ¡Agrega uno arriba!",
+    "empty": "Aún no hay pagos registrados",
     "recorded": "pago registrado",
     "recordedPlural": "pagos registrados",
     "date": "Fecha",
@@ -82,5 +84,21 @@
         "other": "Otra"
       }
     }
+  },
+  "schedule": {
+    "title": "Cuadro de Amortización",
+    "payments": "cuotas",
+    "date": "Fecha",
+    "principal": "Capital",
+    "interest": "Interés",
+    "payment": "Cuota",
+    "balance": "Saldo",
+    "rate": "Tasa",
+    "status": "Estado",
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "totalPrincipal": "Total Capital",
+    "totalInterest": "Total Intereses",
+    "totalAmount": "Total a Pagar"
   }
 }

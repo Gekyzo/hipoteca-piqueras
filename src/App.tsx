@@ -4,6 +4,7 @@ import { AuthSection } from '@/components/AuthSection';
 import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
+import { AmortizationSchedule } from '@/components/AmortizationSchedule';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { t } from '@/i18n';
@@ -191,9 +192,11 @@ export default function App() {
 
         {section === 'app' && (
           <Tabs defaultValue="mortgage" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsList className="grid w-full grid-cols-4 max-w-xl">
               <TabsTrigger value="mortgage">{t.app.tabMortgage}</TabsTrigger>
+              <TabsTrigger value="schedule">{t.app.tabSchedule}</TabsTrigger>
               <TabsTrigger value="payments">{t.app.tabPayments}</TabsTrigger>
+              <TabsTrigger value="history">{t.app.tabHistory}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="mortgage" className="space-y-6">
@@ -205,8 +208,20 @@ export default function App() {
               />
             </TabsContent>
 
+            <TabsContent value="schedule" className="space-y-6">
+              <AmortizationSchedule
+                mortgage={mortgage}
+                conditions={conditions}
+                payments={payments}
+                isLoading={isLoadingMortgage}
+              />
+            </TabsContent>
+
             <TabsContent value="payments" className="space-y-6">
               <PaymentForm onAddPayment={handleAddPayment} />
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-6">
               <PaymentsList
                 payments={payments}
                 onDeletePayment={handleDeletePayment}

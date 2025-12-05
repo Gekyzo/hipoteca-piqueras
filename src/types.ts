@@ -45,4 +45,14 @@ export interface MortgageCondition {
 
 export type MortgageConditionInsert = Omit<MortgageCondition, 'id' | 'created_at'>;
 
+export interface AmortizationPayment {
+  paymentNumber: number;
+  date: Date;
+  principal: number;
+  interest: number;
+  totalPayment: number;
+  remainingBalance: number;
+  interestRate: number;
+}
+
 export type ToastType = 'info' | 'error' | 'success';
