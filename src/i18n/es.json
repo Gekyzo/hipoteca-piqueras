@@ -58,6 +58,8 @@
     "title": "Información de Hipoteca",
     "description": "Resumen de tu hipoteca",
     "noMortgage": "No hay hipoteca registrada",
+    "contractual": "Condiciones Contractuales",
+    "effective": "Condiciones Efectivas",
     "totalAmount": "Monto Total",
     "interestRate": "Tasa de Interés",
     "startDate": "Fecha de Inicio",

@@ -220,30 +220,41 @@ export function MortgageInfo({
         )}
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <InfoItem label={t.mortgage.totalAmount} value={formatCurrency(mortgage.total_amount)} />
-          <InfoItem label={t.mortgage.interestRate} value={formatPercent(mortgage.interest_rate)} />
-          {totalBonification > 0 && (
-            <InfoItem label={t.mortgage.bonifications.effectiveRate} value={formatPercent(effectiveRate)} highlight="text-green-600" />
-          )}
-          <InfoItem label={t.mortgage.monthlyPayment} value={formatCurrency(mortgage.monthly_payment)} />
-          {totalBonification > 0 && (
-            <InfoItem label={t.mortgage.effectiveMonthlyPayment} value={formatCurrency(effectiveMonthlyPayment)} highlight="text-green-600" />
-          )}
-          <InfoItem label={t.mortgage.startDate} value={formatDate(mortgage.start_date)} />
-          <InfoItem label={t.mortgage.endDate} value={formatDate(endDate.toISOString())} />
-          <InfoItem label={t.mortgage.termYears} value={`${(mortgage.term_months / 12).toFixed(1)} años`} />
+        {/* Contractual Section */}
+        <div>
+          <p className="text-sm font-medium mb-3">{t.mortgage.contractual}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <InfoItem label={t.mortgage.totalAmount} value={formatCurrency(mortgage.total_amount)} />
+            <InfoItem label={t.mortgage.interestRate} value={formatPercent(mortgage.interest_rate)} />
+            <InfoItem label={t.mortgage.monthlyPayment} value={formatCurrency(mortgage.monthly_payment)} />
+            <InfoItem label={t.mortgage.startDate} value={formatDate(mortgage.start_date)} />
+            <InfoItem label={t.mortgage.endDate} value={formatDate(endDate.toISOString())} />
+            <InfoItem label={t.mortgage.termYears} value={`${(mortgage.term_months / 12).toFixed(1)} años`} />
+          </div>
         </div>
+
+        {/* Effective Section - only show if there are bonifications or conditions */}
+        {(totalBonification > 0 || conditions.length > 0) && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm font-medium mb-3">{t.mortgage.effective}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <InfoItem label={t.mortgage.totalPayments} value={formatCurrency(totalPayments)} highlight="text-red-600" />
+                <InfoItem label={t.mortgage.bonifications.effectiveRate} value={formatPercent(effectiveRate)} highlight="text-green-600" />
+                <InfoItem label={t.mortgage.effectiveMonthlyPayment} value={formatCurrency(effectiveMonthlyPayment)} highlight="text-green-600" />
+                <InfoItem label={t.mortgage.totalInterest} value={formatCurrency(totalInterest)} highlight="text-orange-600" />
+              </div>
+            </div>
+          </>
+        )}
 
         <Separator />
 
+        {/* Balance and Progress */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <InfoItem label={t.mortgage.totalInterest} value={formatCurrency(totalInterest)} highlight="text-orange-600" />
-          <InfoItem label={t.mortgage.totalPayments} value={formatCurrency(totalPayments)} highlight="text-red-600" />
           <InfoItem label={t.mortgage.remainingBalance} value={formatCurrency(remainingBalance)} highlight="text-blue-600" />
         </div>
-
-        <Separator />
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
