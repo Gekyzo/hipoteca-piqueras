@@ -9,6 +9,10 @@ import type {
   MortgageConditionInsert,
   MortgageBonification,
   MortgageBonificationInsert,
+  MortgageShare,
+  MortgageShareInsert,
+  MortgageShareUpdate,
+  UserRole,
 } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -263,4 +267,75 @@ export async function removeMortgageBonification(id: string): Promise<void> {
   if (error) {
     throw error;
   }
+}
+
+// Mortgage shares functions
+export async function fetchMortgageShares(mortgageId: string): Promise<MortgageShare[]> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_shares')
+    .select('*')
+    .eq('mortgage_id', mortgageId);
+
+  if (error) {
+    throw error;
+  }
+  return (data as MortgageShare[]) ?? [];
+}
+
+export async function fetchMortgageShareByRole(mortgageId: string, userRole: UserRole): Promise<MortgageShare | null> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_shares')
+    .select('*')
+    .eq('mortgage_id', mortgageId)
+    .eq('user_role', userRole)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+    throw error;
+  }
+  return data as MortgageShare;
+}
+
+export async function insertMortgageShare(share: MortgageShareInsert): Promise<MortgageShare> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_shares')
+    .insert(share)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as MortgageShare;
+}
+
+export async function updateMortgageShare(id: string, updates: MortgageShareUpdate): Promise<MortgageShare> {
+  const { data, error } = await supabaseClient
+    .from('mortgage_shares')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as MortgageShare;
+}
+
+export async function removeMortgageShare(id: string): Promise<void> {
+  const { error } = await supabaseClient.from('mortgage_shares').delete().eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+// Helper to get current user's role
+export async function getCurrentUserRole(): Promise<UserRole> {
+  const user = await getCurrentUser();
+  return user?.email === 'ciro.mora@gmail.com' ? 'lender' : 'borrower';
 }

@@ -17,12 +17,13 @@ import {
 } from '@/components/ui/select';
 import { t } from '@/i18n';
 import { calculateAmortizationSchedule } from '@/lib/amortization';
-import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole } from '@/types';
 import {
   fetchPayments,
   fetchMortgage,
   fetchMortgageConditions,
   fetchMortgageBonifications,
+  fetchMortgageShares,
   insertPayment,
   removePayment,
   signIn,
@@ -30,6 +31,7 @@ import {
   signOut,
   getCurrentUser,
   onAuthStateChange,
+  getCurrentUserRole,
 } from '@/supabase';
 
 type AppSection = 'auth' | 'app';
@@ -42,6 +44,8 @@ export default function App() {
   const [mortgage, setMortgage] = useState<Mortgage | null>(null);
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
   const [bonifications, setBonifications] = useState<MortgageBonification[]>([]);
+  const [shares, setShares] = useState<MortgageShare[]>([]);
+  const [userRole, setUserRole] = useState<UserRole>('borrower');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
@@ -63,18 +67,25 @@ export default function App() {
   const loadMortgage = useCallback(async () => {
     setIsLoadingMortgage(true);
     try {
-      const data = await fetchMortgage();
+      const [data, role] = await Promise.all([
+        fetchMortgage(),
+        getCurrentUserRole(),
+      ]);
       setMortgage(data);
+      setUserRole(role);
       if (data) {
-        const [conditionsData, bonificationsData] = await Promise.all([
+        const [conditionsData, bonificationsData, sharesData] = await Promise.all([
           fetchMortgageConditions(data.id),
           fetchMortgageBonifications(data.id),
+          fetchMortgageShares(data.id),
         ]);
         setConditions(conditionsData);
         setBonifications(bonificationsData);
+        setShares(sharesData);
       } else {
         setConditions([]);
         setBonifications([]);
+        setShares([]);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t.common.unknownError;
@@ -114,6 +125,7 @@ export default function App() {
         setMortgage(null);
         setConditions([]);
         setBonifications([]);
+        setShares([]);
       }
     });
 
@@ -241,6 +253,8 @@ export default function App() {
                 payments={payments}
                 conditions={conditions}
                 bonifications={bonifications}
+                shares={shares}
+                userRole={userRole}
                 isLoading={isLoadingMortgage}
                 onNewPayment={() => setActiveTab('payments')}
               />
@@ -281,6 +295,8 @@ export default function App() {
                 mortgage={mortgage}
                 conditions={conditions}
                 bonifications={bonifications}
+                shares={shares}
+                userRole={userRole}
                 currentPaymentsMade={payments.length}
               />
             </TabsContent>

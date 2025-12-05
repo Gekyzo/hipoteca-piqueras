@@ -173,3 +173,47 @@ CREATE POLICY "Users can delete own mortgage bonifications" ON mortgage_bonifica
 
 -- Index for faster queries by mortgage_id
 CREATE INDEX idx_mortgage_bonifications_mortgage_id ON mortgage_bonifications(mortgage_id);
+
+-- Tabla de participaciones en la hipoteca (para dividir la deuda entre usuarios)
+-- Permite que diferentes usuarios tengan diferentes porcentajes de la hipoteca
+-- y que las amortizaciones anticipadas reduzcan solo la porción del usuario que las realiza
+CREATE TABLE mortgage_shares (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  mortgage_id UUID REFERENCES mortgages(id) ON DELETE CASCADE NOT NULL,          -- Hipoteca a la que pertenece
+  user_role TEXT NOT NULL CHECK (user_role IN ('lender', 'borrower')),           -- Rol del usuario
+  initial_share_amount DECIMAL(12, 2) NOT NULL,                                  -- Monto inicial de la participación
+  initial_share_percentage DECIMAL(5, 2) NOT NULL,                               -- Porcentaje inicial de la participación
+  amortized_amount DECIMAL(12, 2) DEFAULT 0,                                     -- Monto total amortizado anticipadamente
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(mortgage_id, user_role)                                                  -- Solo una participación por rol por hipoteca
+);
+
+-- Enable Row Level Security for mortgage_shares
+ALTER TABLE mortgage_shares ENABLE ROW LEVEL SECURITY;
+
+-- Mortgage shares: users can view shares of their mortgages
+CREATE POLICY "Users can view mortgage shares" ON mortgage_shares
+  FOR SELECT TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can insert mortgage shares" ON mortgage_shares
+  FOR INSERT TO authenticated
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can update mortgage shares" ON mortgage_shares
+  FOR UPDATE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()))
+  WITH CHECK (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can delete mortgage shares" ON mortgage_shares
+  FOR DELETE TO authenticated
+  USING (mortgage_id IN (SELECT id FROM mortgages WHERE user_id = auth.uid()));
+
+-- Index for faster queries by mortgage_id
+CREATE INDEX idx_mortgage_shares_mortgage_id ON mortgage_shares(mortgage_id);
+
+-- Trigger to update updated_at on mortgage_shares
+CREATE TRIGGER update_mortgage_shares_updated_at
+  BEFORE UPDATE ON mortgage_shares
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

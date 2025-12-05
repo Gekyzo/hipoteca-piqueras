@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
-import type { Mortgage, Payment, MortgageCondition, MortgageBonification, ConditionType, BonificationType } from '@/types';
+import type { Mortgage, Payment, MortgageCondition, MortgageBonification, MortgageShare, UserRole, ConditionType, BonificationType } from '@/types';
 import { calculateTotalBonification, calculateAmortizationSchedule } from '@/lib/amortization';
 
 interface MortgageInfoProps {
@@ -16,6 +16,8 @@ interface MortgageInfoProps {
   payments: Payment[];
   conditions: MortgageCondition[];
   bonifications: MortgageBonification[];
+  shares: MortgageShare[];
+  userRole: UserRole;
   isLoading?: boolean;
   onNewPayment?: () => void;
 }
@@ -155,6 +157,8 @@ export function MortgageInfo({
   payments,
   conditions,
   bonifications,
+  shares,
+  userRole,
   isLoading = false,
   onNewPayment,
 }: MortgageInfoProps) {
@@ -206,6 +210,22 @@ export function MortgageInfo({
   const remainingBalance = mortgage.total_amount - paidPrincipal;
   const progressPercent = (paidPrincipal / mortgage.total_amount) * 100;
 
+  // Get user's share information
+  const userShare = shares.find(s => s.user_role === userRole);
+  const hasShares = shares.length > 0;
+
+  // Calculate user-specific debt if shares are configured
+  const userInitialDebt = userShare?.initial_share_amount ?? 0;
+  const userAmortized = userShare?.amortized_amount ?? 0;
+  // User's remaining debt = (their share percentage * remaining mortgage balance) - their amortizations
+  const userSharePercentage = userShare?.initial_share_percentage ?? 0;
+  const userRemainingDebt = hasShares
+    ? Math.max(0, (remainingBalance * userSharePercentage / 100) - userAmortized)
+    : remainingBalance;
+  const userProgressPercent = hasShares && userInitialDebt > 0
+    ? ((userInitialDebt - userRemainingDebt) / userInitialDebt) * 100
+    : progressPercent;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -249,27 +269,73 @@ export function MortgageInfo({
           </>
         )}
 
+        {/* User's Share Section - only show if shares are configured */}
+        {hasShares && userShare && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm font-medium mb-3">
+                {t.mortgage.shares?.myShare ?? 'Mi Participación'}
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({userRole === 'lender' ? t.mortgage.shares?.lender ?? 'Prestamista' : t.mortgage.shares?.borrower ?? 'Prestatario'})
+                </span>
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <InfoItem
+                  label={t.mortgage.shares?.initialShare ?? 'Participación Inicial'}
+                  value={`${formatCurrency(userInitialDebt)} (${userSharePercentage}%)`}
+                />
+                <InfoItem
+                  label={t.mortgage.shares?.amortized ?? 'Amortizado'}
+                  value={formatCurrency(userAmortized)}
+                  highlight="text-green-600"
+                />
+                <InfoItem
+                  label={t.mortgage.shares?.remainingDebt ?? 'Deuda Pendiente'}
+                  value={formatCurrency(userRemainingDebt)}
+                  highlight="text-blue-600"
+                />
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="flex justify-between text-sm">
+                  <span>{t.mortgage.shares?.myProgress ?? 'Mi Progreso'}</span>
+                  <span className="font-medium">{userProgressPercent.toFixed(1)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(userProgressPercent, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
         <Separator />
 
-        {/* Balance and Progress */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <InfoItem label={t.mortgage.remainingBalance} value={formatCurrency(remainingBalance)} highlight="text-blue-600" />
-        </div>
+        {/* Total Mortgage Balance and Progress */}
+        <div>
+          <p className="text-sm font-medium mb-3">{t.mortgage.shares?.totalMortgage ?? 'Hipoteca Total'}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <InfoItem label={t.mortgage.remainingBalance} value={formatCurrency(remainingBalance)} highlight="text-blue-600" />
+          </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>{t.mortgage.progress}</span>
-            <span className="font-medium">{progressPercent.toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className="bg-green-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(progressPercent, 100)}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <InfoItem label={t.mortgage.paidPrincipal} value={formatCurrency(paidPrincipal)} highlight="text-green-600" />
-            <InfoItem label={t.mortgage.paidInterest} value={formatCurrency(paidInterest)} highlight="text-amber-600" />
+          <div className="space-y-2 mt-4">
+            <div className="flex justify-between text-sm">
+              <span>{t.mortgage.progress}</span>
+              <span className="font-medium">{progressPercent.toFixed(1)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-green-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min(progressPercent, 100)}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <InfoItem label={t.mortgage.paidPrincipal} value={formatCurrency(paidPrincipal)} highlight="text-green-600" />
+              <InfoItem label={t.mortgage.paidInterest} value={formatCurrency(paidInterest)} highlight="text-amber-600" />
+            </div>
           </div>
         </div>
 

@@ -17,17 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Mortgage, MortgageCondition, MortgageBonification } from '@/types';
+import type { Mortgage, MortgageCondition, MortgageBonification, MortgageShare, UserRole } from '@/types';
 import {
   simulateEarlyPayoff,
   calculateAmortizationSchedule,
   getScheduleSummary,
 } from '@/lib/amortization';
+import { t } from '@/i18n';
 
 interface EarlyPayoffSimulatorProps {
   mortgage: Mortgage | null;
   conditions: MortgageCondition[];
   bonifications: MortgageBonification[];
+  shares: MortgageShare[];
+  userRole: UserRole;
   currentPaymentsMade: number;
 }
 
@@ -42,10 +45,16 @@ export function EarlyPayoffSimulator({
   mortgage,
   conditions,
   bonifications,
+  shares,
+  userRole,
   currentPaymentsMade,
 }: EarlyPayoffSimulatorProps) {
   const [extraAmount, setExtraAmount] = useState('');
   const [afterPayment, setAfterPayment] = useState(currentPaymentsMade.toString());
+
+  // Get user's share if configured
+  const userShare = shares.find(s => s.user_role === userRole);
+  const hasShares = shares.length > 0;
 
   const schedule = useMemo(() => {
     if (!mortgage) return [];
@@ -89,6 +98,14 @@ export function EarlyPayoffSimulator({
     ? mortgage.total_amount
     : (selectedPayment?.remainingBalance ?? mortgage.total_amount);
 
+  // Calculate user's share-specific values
+  const userSharePercentage = userShare?.initial_share_percentage ?? 100;
+  const userInitialDebt = userShare?.initial_share_amount ?? mortgage.total_amount;
+  const userAmortized = userShare?.amortized_amount ?? 0;
+  const userRemainingDebt = hasShares
+    ? Math.max(0, (remainingBalance * userSharePercentage / 100) - userAmortized)
+    : remainingBalance;
+
   // Generate payment options for dropdown
   const paymentOptions = Array.from(
     { length: Math.min(mortgage.term_months, 60) },
@@ -104,14 +121,40 @@ export function EarlyPayoffSimulator({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Current Status */}
+        {/* User's Share Status - only show if shares configured */}
+        {hasShares && userShare && (
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm font-medium mb-3">
+              {t.mortgage.shares.myShare}
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                ({userRole === 'lender' ? t.mortgage.shares.lender : t.mortgage.shares.borrower} - {userSharePercentage}%)
+              </span>
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">{t.mortgage.shares.initialShare}</p>
+                <p className="text-lg font-semibold">{formatCurrency(userInitialDebt)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t.mortgage.shares.remainingDebt}</p>
+                <p className="text-lg font-semibold text-blue-600">{formatCurrency(userRemainingDebt)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t.mortgage.shares.amortized}</p>
+                <p className="text-lg font-semibold text-green-600">{formatCurrency(userAmortized)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Total Mortgage Status */}
         <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
           <div>
             <p className="text-sm text-muted-foreground">Pagos realizados</p>
             <p className="text-lg font-semibold">{currentPaymentsMade} de {mortgage.term_months}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Saldo pendiente actual</p>
+            <p className="text-sm text-muted-foreground">Saldo pendiente total</p>
             <p className="text-lg font-semibold text-blue-600">
               {formatCurrency(schedule[currentPaymentsMade - 1]?.remainingBalance ?? mortgage.total_amount)}
             </p>
@@ -234,6 +277,25 @@ export function EarlyPayoffSimulator({
                   </div>
                 </div>
               </div>
+
+              {/* Impact on User's Share - only show if shares configured */}
+              {hasShares && userShare && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-medium mb-2">{t.mortgage.shares.myShare}</p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Deuda actual:</span>
+                      <span className="ml-2 font-medium">{formatCurrency(userRemainingDebt)}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Después de amortizar:</span>
+                      <span className="ml-2 font-medium text-green-600">
+                        {formatCurrency(Math.max(0, userRemainingDebt - simulation.extraPaymentAmount))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* ROI */}
               {simulation.interestSaved > 0 && (

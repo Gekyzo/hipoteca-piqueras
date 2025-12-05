@@ -105,6 +105,16 @@
         "direct_debit": "Domiciliación de Recibos",
         "other": "Otra"
       }
+    },
+    "shares": {
+      "myShare": "Mi Participación",
+      "lender": "Prestamista",
+      "borrower": "Prestatario",
+      "initialShare": "Participación Inicial",
+      "amortized": "Amortizado",
+      "remainingDebt": "Deuda Pendiente",
+      "myProgress": "Mi Progreso",
+      "totalMortgage": "Hipoteca Total"
     }
   },
   "schedule": {

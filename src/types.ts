@@ -70,3 +70,19 @@ export interface AmortizationPayment {
 }
 
 export type ToastType = 'info' | 'error' | 'success';
+
+export type UserRole = 'lender' | 'borrower';
+
+export interface MortgageShare {
+  id: string;
+  mortgage_id: string;
+  user_role: UserRole;
+  initial_share_amount: number;
+  initial_share_percentage: number;
+  amortized_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MortgageShareInsert = Omit<MortgageShare, 'id' | 'created_at' | 'updated_at'>;
+export type MortgageShareUpdate = Partial<Omit<MortgageShareInsert, 'mortgage_id' | 'user_role'>>;
