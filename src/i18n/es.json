@@ -10,7 +10,8 @@
     "tabPayments": "Nuevo Pago",
     "tabMortgage": "Hipoteca",
     "tabHistory": "Historial",
-    "tabSchedule": "Cuotas"
+    "tabSchedule": "Cuotas",
+    "tabSimulator": "Simulador"
   },
   "auth": {
     "title": "Iniciar Sesión",

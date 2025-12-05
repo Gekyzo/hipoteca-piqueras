@@ -5,6 +5,7 @@ import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
 import { AmortizationSchedule } from '@/components/AmortizationSchedule';
+import { EarlyPayoffSimulator } from '@/components/EarlyPayoffSimulator';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -32,7 +33,7 @@ import {
 } from '@/supabase';
 
 type AppSection = 'auth' | 'app';
-type TabValue = 'mortgage' | 'payments' | 'history' | 'schedule';
+type TabValue = 'mortgage' | 'payments' | 'history' | 'schedule' | 'simulator';
 
 export default function App() {
   const [section, setSection] = useState<AppSection>('auth');
@@ -221,15 +222,17 @@ export default function App() {
                   <SelectItem value="payments">{t.app.tabPayments}</SelectItem>
                   <SelectItem value="history">{t.app.tabHistory}</SelectItem>
                   <SelectItem value="schedule">{t.app.tabSchedule}</SelectItem>
+                  <SelectItem value="simulator">{t.app.tabSimulator}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {/* Desktop: TabsList */}
-            <TabsList className="hidden sm:grid w-full grid-cols-4 max-w-xl">
+            <TabsList className="hidden sm:grid w-full grid-cols-5 max-w-2xl">
               <TabsTrigger value="mortgage">{t.app.tabMortgage}</TabsTrigger>
               <TabsTrigger value="payments">{t.app.tabPayments}</TabsTrigger>
               <TabsTrigger value="history">{t.app.tabHistory}</TabsTrigger>
               <TabsTrigger value="schedule">{t.app.tabSchedule}</TabsTrigger>
+              <TabsTrigger value="simulator">{t.app.tabSimulator}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="mortgage" className="space-y-6">
@@ -270,6 +273,15 @@ export default function App() {
                 bonifications={bonifications}
                 payments={payments}
                 isLoading={isLoadingMortgage}
+              />
+            </TabsContent>
+
+            <TabsContent value="simulator" className="space-y-6">
+              <EarlyPayoffSimulator
+                mortgage={mortgage}
+                conditions={conditions}
+                bonifications={bonifications}
+                currentPaymentsMade={payments.length}
               />
             </TabsContent>
           </Tabs>
