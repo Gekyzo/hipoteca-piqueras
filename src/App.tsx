@@ -7,6 +7,13 @@ import { MortgageInfo } from '@/components/MortgageInfo';
 import { AmortizationSchedule } from '@/components/AmortizationSchedule';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { t } from '@/i18n';
 import type { Payment, PaymentInsert, Mortgage, MortgageCondition } from '@/types';
 import {
@@ -23,6 +30,7 @@ import {
 } from '@/supabase';
 
 type AppSection = 'auth' | 'app';
+type TabValue = 'mortgage' | 'payments' | 'history' | 'schedule';
 
 export default function App() {
   const [section, setSection] = useState<AppSection>('auth');
@@ -33,6 +41,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabValue>('mortgage');
 
   const loadPayments = useCallback(async () => {
     setIsLoadingPayments(true);
@@ -166,12 +175,12 @@ export default function App() {
       <Toaster position="top-right" richColors />
 
       <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t.app.title}</h1>
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold truncate">{t.app.title}</h1>
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {section === 'app' && userEmail && (
               <>
-                <span className="text-sm text-muted-foreground">{userEmail}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">{userEmail}</span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   {t.app.logout}
                 </Button>
@@ -191,12 +200,27 @@ export default function App() {
         )}
 
         {section === 'app' && (
-          <Tabs defaultValue="mortgage" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 max-w-xl">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="space-y-6">
+            {/* Mobile: Select dropdown */}
+            <div className="sm:hidden">
+              <Select value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mortgage">{t.app.tabMortgage}</SelectItem>
+                  <SelectItem value="payments">{t.app.tabPayments}</SelectItem>
+                  <SelectItem value="history">{t.app.tabHistory}</SelectItem>
+                  <SelectItem value="schedule">{t.app.tabSchedule}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Desktop: TabsList */}
+            <TabsList className="hidden sm:grid w-full grid-cols-4 max-w-xl">
               <TabsTrigger value="mortgage">{t.app.tabMortgage}</TabsTrigger>
-              <TabsTrigger value="schedule">{t.app.tabSchedule}</TabsTrigger>
               <TabsTrigger value="payments">{t.app.tabPayments}</TabsTrigger>
               <TabsTrigger value="history">{t.app.tabHistory}</TabsTrigger>
+              <TabsTrigger value="schedule">{t.app.tabSchedule}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="mortgage" className="space-y-6">
@@ -205,15 +229,7 @@ export default function App() {
                 payments={payments}
                 conditions={conditions}
                 isLoading={isLoadingMortgage}
-              />
-            </TabsContent>
-
-            <TabsContent value="schedule" className="space-y-6">
-              <AmortizationSchedule
-                mortgage={mortgage}
-                conditions={conditions}
-                payments={payments}
-                isLoading={isLoadingMortgage}
+                onNewPayment={() => setActiveTab('payments')}
               />
             </TabsContent>
 
@@ -226,6 +242,15 @@ export default function App() {
                 payments={payments}
                 onDeletePayment={handleDeletePayment}
                 isLoading={isLoadingPayments}
+              />
+            </TabsContent>
+
+            <TabsContent value="schedule" className="space-y-6">
+              <AmortizationSchedule
+                mortgage={mortgage}
+                conditions={conditions}
+                payments={payments}
+                isLoading={isLoadingMortgage}
               />
             </TabsContent>
           </Tabs>

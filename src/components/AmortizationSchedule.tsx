@@ -91,7 +91,7 @@ export function AmortizationSchedule({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-4 bg-muted rounded-lg">
           <div>
             <p className="text-sm text-muted-foreground">{t.schedule.totalPrincipal}</p>
             <p className="text-lg font-semibold">{formatCurrency(summary.totalPrincipal)}</p>
@@ -107,7 +107,7 @@ export function AmortizationSchedule({
         </div>
 
         <div className="max-h-[500px] overflow-auto border rounded-md">
-          <table className="w-full caption-bottom text-sm">
+          <table className="w-full caption-bottom text-xs sm:text-sm min-w-[600px]">
             <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow className="border-b bg-background">
                 <TableHead className="w-16 bg-background">#</TableHead>

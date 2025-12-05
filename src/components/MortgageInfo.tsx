@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
 import type { Mortgage, Payment, MortgageCondition, ConditionType } from '@/types';
@@ -14,6 +15,7 @@ interface MortgageInfoProps {
   payments: Payment[];
   conditions: MortgageCondition[];
   isLoading?: boolean;
+  onNewPayment?: () => void;
 }
 
 function formatCurrency(amount: number): string {
@@ -126,6 +128,7 @@ export function MortgageInfo({
   payments,
   conditions,
   isLoading = false,
+  onNewPayment,
 }: MortgageInfoProps) {
   if (isLoading) {
     return (
@@ -163,9 +166,16 @@ export function MortgageInfo({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{t.mortgage.title}</CardTitle>
-        <CardDescription>{t.mortgage.description}</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle>{t.mortgage.title}</CardTitle>
+          <CardDescription>{t.mortgage.description}</CardDescription>
+        </div>
+        {onNewPayment && (
+          <Button onClick={onNewPayment} size="sm">
+            {t.app.tabPayments}
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
