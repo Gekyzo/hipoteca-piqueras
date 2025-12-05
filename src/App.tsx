@@ -5,6 +5,7 @@ import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { t } from '@/i18n';
 import type { Payment, PaymentInsert, Mortgage, MortgageCondition } from '@/types';
 import {
@@ -189,20 +190,30 @@ export default function App() {
         )}
 
         {section === 'app' && (
-          <div className="space-y-6">
-            <MortgageInfo
-              mortgage={mortgage}
-              payments={payments}
-              conditions={conditions}
-              isLoading={isLoadingMortgage}
-            />
-            <PaymentForm onAddPayment={handleAddPayment} />
-            <PaymentsList
-              payments={payments}
-              onDeletePayment={handleDeletePayment}
-              isLoading={isLoadingPayments}
-            />
-          </div>
+          <Tabs defaultValue="mortgage" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="mortgage">{t.app.tabMortgage}</TabsTrigger>
+              <TabsTrigger value="payments">{t.app.tabPayments}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="mortgage" className="space-y-6">
+              <MortgageInfo
+                mortgage={mortgage}
+                payments={payments}
+                conditions={conditions}
+                isLoading={isLoadingMortgage}
+              />
+            </TabsContent>
+
+            <TabsContent value="payments" className="space-y-6">
+              <PaymentForm onAddPayment={handleAddPayment} />
+              <PaymentsList
+                payments={payments}
+                onDeletePayment={handleDeletePayment}
+                isLoading={isLoadingPayments}
+              />
+            </TabsContent>
+          </Tabs>
         )}
       </main>
     </div>
