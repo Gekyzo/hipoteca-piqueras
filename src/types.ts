@@ -1,23 +1,17 @@
-export interface Item {
+export interface Payment {
   id: string;
-  name: string;
-  description: string | null;
+  user_id: string;
+  payment_date: string;
+  amount: number;
+  principal: number | null;
+  interest: number | null;
+  extra_payment: number | null;
+  remaining_balance: number | null;
+  payment_number: number | null;
+  notes: string | null;
   created_at: string;
 }
 
-export interface Database {
-  public: {
-    Tables: {
-      items: {
-        Row: Item;
-        Insert: { name: string; description?: string | null };
-        Update: { name?: string; description?: string | null };
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-  };
-}
+export type PaymentInsert = Omit<Payment, 'id' | 'user_id' | 'created_at'>;
 
 export type ToastType = 'info' | 'error' | 'success';

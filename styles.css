@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 900px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -31,9 +31,10 @@ h2 {
 }
 
 .config-section,
+.auth-section,
 .app-section,
-.add-item,
-.items-list {
+.add-payment,
+.payments-list {
   background: white;
   padding: 1.5rem;
   border-radius: 8px;
@@ -41,25 +42,45 @@ h2 {
   margin-bottom: 1rem;
 }
 
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 .form-group {
-  margin-bottom: 1rem;
+  flex: 1;
+  margin-bottom: 0.5rem;
+}
+
+.form-group-wide {
+  flex: 2;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
-input[type='text'] {
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='date'] {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
-input[type='text']:focus {
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+input[type='number']:focus,
+input[type='date']:focus {
   outline: none;
   border-color: #3ecf8e;
 }
@@ -85,8 +106,8 @@ button:disabled {
 }
 
 .btn-small {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
   background: #666;
 }
 
@@ -100,6 +121,80 @@ button:disabled {
 
 .btn-danger:hover {
   background: #c0392b;
+}
+
+.btn-link {
+  background: none;
+  color: #3ecf8e;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  background: none;
+  color: #2db87a;
+}
+
+/* Auth styles */
+.auth-section {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-section #backToConfigBtn {
+  display: block;
+  margin: 1rem auto 0;
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+}
+
+.btn-google:hover {
+  background: #f8f8f8;
+}
+
+.btn-google svg {
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+.auth-divider span {
+  padding: 0 0.75rem;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.status-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .status {
@@ -124,35 +219,38 @@ button:disabled {
   color: #e74c3c;
 }
 
-.items-list {
+.payments-list {
   min-height: 100px;
+  overflow-x: auto;
 }
 
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.payments-table th,
+.payments-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
   border-bottom: 1px solid #eee;
 }
 
-.item:last-child {
-  border-bottom: none;
-}
-
-.item-info h3 {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-}
-
-.item-info p {
-  font-size: 0.85rem;
+.payments-table th {
+  background: #f8f8f8;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
   color: #666;
 }
 
-.item-actions {
-  display: flex;
-  gap: 0.5rem;
+.payments-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.payments-table td:last-child {
+  text-align: right;
 }
 
 .loading,
@@ -177,6 +275,7 @@ button:disabled {
   padding: 1rem 2rem;
   border-radius: 4px;
   animation: fadeIn 0.3s ease;
+  z-index: 1000;
 }
 
 .toast.error {
@@ -195,5 +294,25 @@ button:disabled {
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group-wide {
+    flex: 1;
+  }
+
+  .payments-table {
+    font-size: 0.8rem;
+  }
+
+  .payments-table th,
+  .payments-table td {
+    padding: 0.5rem 0.25rem;
   }
 }

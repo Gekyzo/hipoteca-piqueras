@@ -1,4 +1,4 @@
-import type { ToastType } from './types';
+import type { ToastType } from '@/types';
 
 export function getElement<T extends HTMLElement>(id: string): T {
   const el = document.getElementById(id);
@@ -36,10 +36,23 @@ export function updateConnectionStatus(connected: boolean): void {
 
 export function showConfigSection(): void {
   getElement('configSection').style.display = 'block';
+  getElement('authSection').style.display = 'none';
+  getElement('appSection').style.display = 'none';
+}
+
+export function showAuthSection(): void {
+  getElement('configSection').style.display = 'none';
+  getElement('authSection').style.display = 'block';
   getElement('appSection').style.display = 'none';
 }
 
 export function showAppSection(): void {
   getElement('configSection').style.display = 'none';
+  getElement('authSection').style.display = 'none';
   getElement('appSection').style.display = 'block';
+}
+
+export function updateUserDisplay(email: string | null): void {
+  const userEmail = getElement<HTMLSpanElement>('userEmail');
+  userEmail.textContent = email ?? '';
 }

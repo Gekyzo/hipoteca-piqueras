@@ -1,6 +1,6 @@
-# Supabase + GitHub Pages Demo
+# Mortgage Payment Tracker
 
-A simple demo showing how to use Supabase as a backend for a GitHub Pages static site. Built with TypeScript and Vite.
+A simple mortgage payment tracker using Supabase as a backend, hosted on GitHub Pages. Built with TypeScript and Vite.
 
 ## Setup
 
@@ -8,30 +8,34 @@ A simple demo showing how to use Supabase as a backend for a GitHub Pages static
 
 1. Go to [supabase.com](https://supabase.com) and create a free account
 2. Create a new project
-3. Go to **Settings > API** and copy:
-   - Project URL (e.g., `https://xxxxx.supabase.co`)
-   - `anon` public key
+3. Get your credentials:
+   - **Project URL**: Go to **Project Settings > Data API** and copy the URL
+   - **Publishable Key**: Go to **Project Settings > API Keys** and copy the Publishable key
 
 ### 2. Create the Database Table
 
-In your Supabase dashboard, go to **SQL Editor** and run:
+In your Supabase dashboard, go to **SQL Editor** and run the contents of [schema.sql](schema.sql):
 
 ```sql
-CREATE TABLE items (
+CREATE TABLE payments (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
+  payment_date DATE NOT NULL,
+  amount DECIMAL(12, 2) NOT NULL,
+  principal DECIMAL(12, 2),
+  interest DECIMAL(12, 2),
+  extra_payment DECIMAL(12, 2) DEFAULT 0,
+  remaining_balance DECIMAL(12, 2),
+  payment_number INTEGER,
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable Row Level Security
-ALTER TABLE items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
--- Allow all operations for anonymous users (for demo purposes)
-CREATE POLICY "Allow all operations" ON items
-  FOR ALL
-  USING (true)
-  WITH CHECK (true);
+CREATE POLICY "Allow all operations" ON payments
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE INDEX idx_payments_date ON payments(payment_date DESC);
 ```
 
 ### 3. Deploy to GitHub Pages
@@ -66,8 +70,8 @@ jobs:
 ### 4. Configure the App
 
 1. Open your deployed site
-2. Enter your Supabase URL and anon key
-3. Start adding items!
+2. Enter your Supabase URL and Publishable key
+3. Start tracking payments!
 
 ## Local Development
 
@@ -95,6 +99,7 @@ npm run preview
 │   └── types.ts     # TypeScript types
 ├── index.html
 ├── styles.css
+├── schema.sql       # Database schema
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts

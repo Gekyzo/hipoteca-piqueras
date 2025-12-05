@@ -1,58 +1,94 @@
-import type { Item } from './types';
+import type { Payment, PaymentInsert } from '@/types';
 import {
   initClient,
   clearClient,
   testConnection,
-  fetchItems,
-  insertItem,
-  removeItem,
-} from './supabase';
+  fetchPayments,
+  insertPayment,
+  removePayment,
+  signIn,
+  signInWithGoogle,
+  signOut,
+  getCurrentUser,
+  onAuthStateChange,
+} from '@/supabase';
 import {
   getElement,
-  escapeHtml,
   showToast,
   updateConnectionStatus,
   showConfigSection,
+  showAuthSection,
   showAppSection,
-} from './ui';
+  updateUserDisplay,
+} from '@/ui';
 
-async function loadItems(): Promise<void> {
-  const container = getElement<HTMLDivElement>('itemsContainer');
+function formatCurrency(amount: number | null): string {
+  if (amount === null) {
+    return '-';
+  }
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount);
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('es-ES');
+}
+
+async function loadPayments(): Promise<void> {
+  const container = getElement<HTMLDivElement>('paymentsContainer');
   container.innerHTML = '<p class="loading">Loading...</p>';
 
   try {
-    const items = await fetchItems();
+    const payments = await fetchPayments();
 
-    if (items.length === 0) {
+    if (payments.length === 0) {
       container.innerHTML =
-        '<p class="empty-message">No items yet. Add one above!</p>';
+        '<p class="empty-message">No payments yet. Add one above!</p>';
       return;
     }
 
-    container.innerHTML = items
-      .map(
-        (item: Item) => `
-      <div class="item" data-id="${item.id}">
-        <div class="item-info">
-          <h3>${escapeHtml(item.name)}</h3>
-          ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}
-        </div>
-        <div class="item-actions">
-          <button class="btn-small btn-danger" data-delete-id="${
-            item.id
-          }">Delete</button>
-        </div>
-      </div>
-    `
-      )
-      .join('');
+    container.innerHTML = `
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Principal</th>
+            <th>Interest</th>
+            <th>Balance</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${payments
+            .map(
+              (p: Payment) => `
+            <tr data-id="${p.id}">
+              <td>${p.payment_number ?? '-'}</td>
+              <td>${formatDate(p.payment_date)}</td>
+              <td>${formatCurrency(p.amount)}</td>
+              <td>${formatCurrency(p.principal)}</td>
+              <td>${formatCurrency(p.interest)}</td>
+              <td>${formatCurrency(p.remaining_balance)}</td>
+              <td>
+                <button class="btn-small btn-danger" data-delete-id="${p.id}">Delete</button>
+              </td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
 
-    // Attach delete handlers
     container.querySelectorAll('[data-delete-id]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).dataset.deleteId;
         if (id) {
-          await deleteItem(id);
+          await deletePayment(id);
         }
       });
     });
@@ -73,13 +109,66 @@ async function initSupabase(url: string, key: string): Promise<void> {
       return;
     }
 
-    showAppSection();
-    updateConnectionStatus(true);
-    await loadItems();
+    // Check if user is already logged in
+    const user = await getCurrentUser();
+    if (user) {
+      showAppSection();
+      updateConnectionStatus(true);
+      updateUserDisplay(user.email ?? null);
+      await loadPayments();
+    } else {
+      showAuthSection();
+      updateConnectionStatus(true);
+    }
+
+    // Listen for auth state changes
+    onAuthStateChange(async (user) => {
+      if (user) {
+        showAppSection();
+        updateUserDisplay(user.email ?? null);
+        await loadPayments();
+      } else {
+        showAuthSection();
+        updateUserDisplay(null);
+      }
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     showToast('Connection failed: ' + message, 'error');
     updateConnectionStatus(false);
+  }
+}
+
+async function handleAuth(): Promise<void> {
+  const email = getElement<HTMLInputElement>('authEmail').value.trim();
+  const password = getElement<HTMLInputElement>('authPassword').value;
+
+  if (!email || !password) {
+    showToast('Please enter email and password', 'error');
+    return;
+  }
+
+  const submitBtn = getElement<HTMLButtonElement>('authSubmitBtn');
+  submitBtn.disabled = true;
+
+  try {
+    const { error } = await signIn(email, password);
+    if (error) {
+      showToast(error, 'error');
+    } else {
+      showToast('Logged in!', 'success');
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+async function handleLogout(): Promise<void> {
+  const { error } = await signOut();
+  if (error) {
+    showToast(error, 'error');
+  } else {
+    showToast('Logged out', 'success');
   }
 }
 
@@ -110,42 +199,67 @@ function clearConfig(): void {
   showToast('Configuration cleared');
 }
 
-async function addItem(): Promise<void> {
-  const nameInput = getElement<HTMLInputElement>('itemName');
-  const descInput = getElement<HTMLInputElement>('itemDescription');
+function getNumericValue(id: string): number | null {
+  const value = getElement<HTMLInputElement>(id).value.trim();
+  if (!value) {
+    return null;
+  }
+  const num = parseFloat(value);
+  return isNaN(num) ? null : num;
+}
 
-  const name = nameInput.value.trim();
-  const description = descInput.value.trim();
+async function addPayment(): Promise<void> {
+  const paymentDate = getElement<HTMLInputElement>('paymentDate').value;
+  const amount = getNumericValue('amount');
 
-  if (!name) {
-    showToast('Please enter an item name', 'error');
+  if (!paymentDate || amount === null) {
+    showToast('Please enter date and amount', 'error');
     return;
   }
 
+  const payment: PaymentInsert = {
+    payment_date: paymentDate,
+    amount,
+    principal: getNumericValue('principal'),
+    interest: getNumericValue('interest'),
+    extra_payment: getNumericValue('extraPayment'),
+    remaining_balance: getNumericValue('remainingBalance'),
+    payment_number: getNumericValue('paymentNumber'),
+    notes: getElement<HTMLInputElement>('notes').value.trim() || null,
+  };
+
   try {
-    await insertItem(name, description || null);
-    nameInput.value = '';
-    descInput.value = '';
-    showToast('Item added!', 'success');
-    await loadItems();
+    await insertPayment(payment);
+
+    // Clear form
+    getElement<HTMLInputElement>('paymentDate').value = '';
+    getElement<HTMLInputElement>('amount').value = '';
+    getElement<HTMLInputElement>('principal').value = '';
+    getElement<HTMLInputElement>('interest').value = '';
+    getElement<HTMLInputElement>('extraPayment').value = '';
+    getElement<HTMLInputElement>('remainingBalance').value = '';
+    getElement<HTMLInputElement>('paymentNumber').value = '';
+    getElement<HTMLInputElement>('notes').value = '';
+
+    showToast('Payment added!', 'success');
+    await loadPayments();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     showToast('Error: ' + message, 'error');
   }
 }
 
-async function deleteItem(id: string): Promise<void> {
+async function deletePayment(id: string): Promise<void> {
   try {
-    await removeItem(id);
-    showToast('Item deleted', 'success');
-    await loadItems();
+    await removePayment(id);
+    showToast('Payment deleted', 'success');
+    await loadPayments();
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     showToast('Error: ' + message, 'error');
   }
 }
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   const savedUrl = localStorage.getItem('supabase_url');
   const savedKey = localStorage.getItem('supabase_key');
@@ -156,8 +270,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initSupabase(savedUrl, savedKey);
   }
 
-  // Attach event listeners
   getElement('saveConfigBtn').addEventListener('click', saveConfig);
   getElement('clearConfigBtn').addEventListener('click', clearConfig);
-  getElement('addItemBtn').addEventListener('click', addItem);
+  getElement('addPaymentBtn').addEventListener('click', addPayment);
+
+  // Auth event listeners
+  getElement('authSubmitBtn').addEventListener('click', handleAuth);
+  getElement('googleSignInBtn').addEventListener('click', async () => {
+    const { error } = await signInWithGoogle();
+    if (error) {
+      showToast(error, 'error');
+    }
+  });
+  getElement('logoutBtn').addEventListener('click', handleLogout);
+  getElement('backToConfigBtn').addEventListener('click', () => {
+    clearConfig();
+    showConfigSection();
+  });
 });
