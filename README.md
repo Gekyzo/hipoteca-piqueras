@@ -1,114 +1,78 @@
-# Mortgage Payment Tracker
+# Hipoteca Piqueras
 
-A simple mortgage payment tracker using Supabase as a backend, hosted on GitHub Pages. Built with TypeScript and Vite.
+Aplicación web para el seguimiento y gestión de una hipoteca compartida entre dos partes (prestamista y prestatario).
 
-## Setup
+## Características
 
-### 1. Create a Supabase Project
+- **Seguimiento de pagos**: Registro y visualización del historial de pagos mensuales
+- **Tabla de amortización**: Cálculo automático del calendario de pagos con tipos de interés variables
+- **Sistema de participaciones**: División de la hipoteca entre prestamista y prestatario
+- **Simulador de amortización anticipada**: Cálculo de ahorro por pagos extra
+- **Flujo de aprobación**: El prestatario solicita amortizaciones que el prestamista debe aprobar
+- **PWA**: Instalable como aplicación móvil
 
-1. Go to [supabase.com](https://supabase.com) and create a free account
-2. Create a new project
-3. Get your credentials:
-   - **Project URL**: Go to **Project Settings > Data API** and copy the URL
-   - **Publishable Key**: Go to **Project Settings > API Keys** and copy the Publishable key
+## Stack Tecnológico
 
-### 2. Create the Database Table
+- React 18 + TypeScript
+- Vite
+- Supabase (Auth + PostgreSQL)
+- Tailwind CSS + shadcn/ui
+- PWA con Service Worker
 
-In your Supabase dashboard, go to **SQL Editor** and run the contents of [schema.sql](schema.sql):
+## Documentación
 
-```sql
-CREATE TABLE payments (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  payment_date DATE NOT NULL,
-  amount DECIMAL(12, 2) NOT NULL,
-  principal DECIMAL(12, 2),
-  interest DECIMAL(12, 2),
-  extra_payment DECIMAL(12, 2) DEFAULT 0,
-  remaining_balance DECIMAL(12, 2),
-  payment_number INTEGER,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+| Documento | Descripción |
+|-----------|-------------|
+| [Arquitectura](docs/architecture.md) | Estructura del proyecto y componentes principales |
+| [Base de datos](docs/database.md) | Esquema, tablas y políticas RLS |
+| [Sistema de participaciones](docs/shares.md) | Cómo funciona la división entre prestamista y prestatario |
+| [Flujo de amortización](docs/amortization.md) | Proceso de solicitud y aprobación de amortizaciones |
+| [Configuración](docs/setup.md) | Instrucciones de instalación y despliegue |
+| [Propuesta de funcionalidades](docs/features-proposal.md) | Plan Free vs Premium vs Pro |
 
-ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow all operations" ON payments
-  FOR ALL USING (true) WITH CHECK (true);
-
-CREATE INDEX idx_payments_date ON payments(payment_date DESC);
-```
-
-### 3. Deploy to GitHub Pages
-
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to GitHub Pages, or use GitHub Actions:
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
-
-### 4. Configure the App
-
-1. Open your deployed site
-2. Enter your Supabase URL and Publishable key
-3. Start tracking payments!
-
-## Local Development
+## Inicio Rápido
 
 ```bash
-# Install dependencies
+# Instalar dependencias
 npm install
 
-# Start dev server
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con las credenciales de Supabase
+
+# Desarrollo
 npm run dev
 
-# Build for production
+# Build de producción
 npm run build
-
-# Preview production build
-npm run preview
 ```
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
-├── src/
-│   ├── main.ts      # App entry point
-│   ├── supabase.ts  # Supabase client and operations
-│   ├── ui.ts        # UI helper functions
-│   └── types.ts     # TypeScript types
-├── index.html
-├── styles.css
-├── schema.sql       # Database schema
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+src/
+├── components/          # Componentes React
+│   ├── ui/             # Componentes base (shadcn/ui)
+│   ├── AuthSection.tsx
+│   ├── MortgageInfo.tsx
+│   ├── PaymentForm.tsx
+│   ├── PaymentsList.tsx
+│   ├── AmortizationSchedule.tsx
+│   ├── EarlyPayoffSimulator.tsx
+│   └── AmortizationRequests.tsx
+├── lib/                # Utilidades
+│   └── amortization.ts # Cálculos de amortización
+├── i18n/               # Traducciones (español)
+├── supabase.ts         # Cliente y funciones de Supabase
+├── types.ts            # Tipos TypeScript
+└── App.tsx             # Componente principal
 ```
 
-## Security Note
+## Roles de Usuario
 
-This demo uses a permissive RLS policy for simplicity. For production:
+- **Prestamista** (`lender`): Aprueba amortizaciones, ve todas las participaciones
+- **Prestatario** (`borrower`): Solicita amortizaciones, ve su progreso
 
-- Implement proper authentication
-- Use restrictive RLS policies
-- Never expose sensitive data via anon key
+## Licencia
+
+Proyecto privado.
