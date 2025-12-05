@@ -59,3 +59,46 @@ CREATE POLICY "Users can delete own payments" ON payments
 
 -- Optional: Index for faster queries by date
 CREATE INDEX idx_payments_date ON payments(payment_date DESC);
+
+-- Tabla de hipotecas
+CREATE TABLE mortgages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,                              -- Usuario propietario del registro
+  total_amount DECIMAL(12, 2) NOT NULL,                                         -- Monto total de la hipoteca
+  interest_rate DECIMAL(5, 3) NOT NULL,                                         -- Tasa de interés anual (ej: 3.500)
+  start_date DATE NOT NULL,                                                     -- Fecha de inicio de la hipoteca
+  term_months INTEGER NOT NULL,                                                 -- Plazo en meses
+  monthly_payment DECIMAL(12, 2) NOT NULL,                                      -- Cuota mensual
+  notes TEXT,                                                                   -- Notas u observaciones
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),                            -- Fecha de creación del registro
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()                             -- Fecha de última actualización
+);
+
+-- Enable Row Level Security for mortgages
+ALTER TABLE mortgages ENABLE ROW LEVEL SECURITY;
+
+-- Mortgages: users can only access their own data
+CREATE POLICY "Users can view own mortgages" ON mortgages
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own mortgages" ON mortgages
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own mortgages" ON mortgages
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own mortgages" ON mortgages
+  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- Trigger to update updated_at on mortgages
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_mortgages_updated_at
+  BEFORE UPDATE ON mortgages
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -3,11 +3,13 @@ import { Toaster, toast } from 'sonner';
 import { AuthSection } from '@/components/AuthSection';
 import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
+import { MortgageInfo } from '@/components/MortgageInfo';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
-import type { Payment, PaymentInsert } from '@/types';
+import type { Payment, PaymentInsert, Mortgage } from '@/types';
 import {
   fetchPayments,
+  fetchMortgage,
   insertPayment,
   removePayment,
   signIn,
@@ -23,8 +25,10 @@ export default function App() {
   const [section, setSection] = useState<AppSection>('auth');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [mortgage, setMortgage] = useState<Mortgage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
 
   const loadPayments = useCallback(async () => {
     setIsLoadingPayments(true);
@@ -39,6 +43,19 @@ export default function App() {
     }
   }, []);
 
+  const loadMortgage = useCallback(async () => {
+    setIsLoadingMortgage(true);
+    try {
+      const data = await fetchMortgage();
+      setMortgage(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.toast.loadMortgageError}: ${message}`);
+    } finally {
+      setIsLoadingMortgage(false);
+    }
+  }, []);
+
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -46,7 +63,7 @@ export default function App() {
         if (user) {
           setSection('app');
           setUserEmail(user.email ?? null);
-          await loadPayments();
+          await Promise.all([loadPayments(), loadMortgage()]);
         } else {
           setSection('auth');
         }
@@ -61,16 +78,17 @@ export default function App() {
       if (authUser) {
         setSection('app');
         setUserEmail(authUser.email ?? null);
-        await loadPayments();
+        await Promise.all([loadPayments(), loadMortgage()]);
       } else {
         setSection('auth');
         setUserEmail(null);
         setPayments([]);
+        setMortgage(null);
       }
     });
 
     return unsubscribe;
-  }, [loadPayments]);
+  }, [loadPayments, loadMortgage]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -163,6 +181,11 @@ export default function App() {
 
         {section === 'app' && (
           <div className="space-y-6">
+            <MortgageInfo
+              mortgage={mortgage}
+              payments={payments}
+              isLoading={isLoadingMortgage}
+            />
             <PaymentForm onAddPayment={handleAddPayment} />
             <PaymentsList
               payments={payments}

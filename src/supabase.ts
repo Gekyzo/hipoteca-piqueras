@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import type { Payment, PaymentInsert } from '@/types';
+import type { Payment, PaymentInsert, Mortgage, MortgageInsert, MortgageUpdate } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -110,6 +110,63 @@ export async function insertPayment(payment: PaymentInsert): Promise<void> {
 
 export async function removePayment(id: string): Promise<void> {
   const { error } = await supabaseClient.from('payments').delete().eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+// Mortgage functions
+export async function fetchMortgage(): Promise<Mortgage | null> {
+  const { data, error } = await supabaseClient
+    .from('mortgages')
+    .select('*')
+    .limit(1)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+    throw error;
+  }
+  return data as Mortgage;
+}
+
+export async function insertMortgage(mortgage: MortgageInsert): Promise<Mortgage> {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data, error } = await supabaseClient
+    .from('mortgages')
+    .insert({ ...mortgage, user_id: user.id })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as Mortgage;
+}
+
+export async function updateMortgage(id: string, mortgage: MortgageUpdate): Promise<Mortgage> {
+  const { data, error } = await supabaseClient
+    .from('mortgages')
+    .update(mortgage)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as Mortgage;
+}
+
+export async function removeMortgage(id: string): Promise<void> {
+  const { error } = await supabaseClient.from('mortgages').delete().eq('id', id);
 
   if (error) {
     throw error;

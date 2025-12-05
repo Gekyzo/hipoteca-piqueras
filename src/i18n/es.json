@@ -6,7 +6,9 @@
   },
   "app": {
     "title": "Seguimiento de Hipoteca",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "tabPayments": "Pagos",
+    "tabMortgage": "Hipoteca"
   },
   "auth": {
     "title": "Iniciar Sesión",
@@ -44,9 +46,29 @@
   },
   "toast": {
     "loadPaymentsError": "Error al cargar pagos",
+    "loadMortgageError": "Error al cargar hipoteca",
     "loginSuccess": "¡Sesión iniciada!",
     "logoutSuccess": "Sesión cerrada",
     "paymentAdded": "¡Pago agregado!",
     "paymentDeleted": "Pago eliminado"
+  },
+  "mortgage": {
+    "title": "Información de Hipoteca",
+    "description": "Resumen de tu hipoteca",
+    "noMortgage": "No hay hipoteca registrada",
+    "totalAmount": "Monto Total",
+    "interestRate": "Tasa de Interés",
+    "startDate": "Fecha de Inicio",
+    "termMonths": "Plazo (meses)",
+    "termYears": "Plazo (años)",
+    "monthlyPayment": "Cuota Mensual",
+    "totalInterest": "Total Intereses",
+    "totalPayments": "Total a Pagar",
+    "remainingBalance": "Saldo Pendiente",
+    "paidPrincipal": "Capital Pagado",
+    "paidInterest": "Intereses Pagados",
+    "progress": "Progreso",
+    "endDate": "Fecha de Finalización",
+    "notes": "Notas"
   }
 }
