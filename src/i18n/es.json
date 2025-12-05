@@ -2,23 +2,11 @@
   "common": {
     "error": "Error",
     "unknownError": "Error desconocido",
-    "loading": "Cargando...",
-    "connected": "Conectado",
-    "disconnected": "Desconectado"
+    "loading": "Cargando..."
   },
   "app": {
     "title": "Seguimiento de Hipoteca",
-    "logout": "Cerrar Sesión",
-    "clearConfig": "Borrar Configuración"
-  },
-  "config": {
-    "title": "Configuración",
-    "description": "Ingresa tus credenciales de Supabase",
-    "supabaseUrl": "Supabase URL",
-    "supabaseKey": "Clave Pública de Supabase",
-    "urlPlaceholder": "https://xxxxx.supabase.co",
-    "keyPlaceholder": "eyJhbGciOiJI...",
-    "saveAndConnect": "Guardar y Conectar"
+    "logout": "Cerrar Sesión"
   },
   "auth": {
     "title": "Iniciar Sesión",
@@ -30,8 +18,7 @@
     "password": "Contraseña",
     "passwordPlaceholder": "Tu contraseña",
     "login": "Iniciar Sesión",
-    "loggingIn": "Iniciando sesión...",
-    "backToConfig": "Volver a Configuración"
+    "loggingIn": "Iniciando sesión..."
   },
   "payments": {
     "addTitle": "Agregar Pago",
@@ -56,11 +43,9 @@
     "delete": "Eliminar"
   },
   "toast": {
-    "connectionError": "Error de conexión",
     "loadPaymentsError": "Error al cargar pagos",
     "loginSuccess": "¡Sesión iniciada!",
     "logoutSuccess": "Sesión cerrada",
-    "configCleared": "Configuración borrada",
     "paymentAdded": "¡Pago agregado!",
     "paymentDeleted": "Pago eliminado"
   }

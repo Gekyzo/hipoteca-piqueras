@@ -15,14 +15,12 @@ import { t } from '@/i18n';
 interface AuthSectionProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onGoogleLogin: () => Promise<void>;
-  onBackToConfig: () => void;
   isLoading?: boolean;
 }
 
 export function AuthSection({
   onLogin,
   onGoogleLogin,
-  onBackToConfig,
   isLoading = false,
 }: AuthSectionProps) {
   const [email, setEmail] = useState('');
@@ -104,16 +102,6 @@ export function AuthSection({
             {isLoading ? t.auth.loggingIn : t.auth.login}
           </Button>
         </form>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="w-full"
-          onClick={onBackToConfig}
-        >
-          {t.auth.backToConfig}
-        </Button>
       </CardContent>
     </Card>
   );

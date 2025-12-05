@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Toaster, toast } from 'sonner';
-import { ConfigSection } from '@/components/ConfigSection';
 import { AuthSection } from '@/components/AuthSection';
 import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
@@ -8,9 +7,6 @@ import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import type { Payment, PaymentInsert } from '@/types';
 import {
-  initClient,
-  clearClient,
-  testConnection,
   fetchPayments,
   insertPayment,
   removePayment,
@@ -21,18 +17,14 @@ import {
   onAuthStateChange,
 } from '@/supabase';
 
-type AppSection = 'config' | 'auth' | 'app';
+type AppSection = 'auth' | 'app';
 
 export default function App() {
-  const [section, setSection] = useState<AppSection>('config');
+  const [section, setSection] = useState<AppSection>('auth');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
-
-  const savedUrl = localStorage.getItem('supabase_url') ?? '';
-  const savedKey = localStorage.getItem('supabase_key') ?? '';
 
   const loadPayments = useCallback(async () => {
     setIsLoadingPayments(true);
@@ -47,23 +39,9 @@ export default function App() {
     }
   }, []);
 
-  const handleConnect = useCallback(
-    async (url: string, key: string) => {
-      setIsLoading(true);
+  useEffect(() => {
+    const checkUser = async () => {
       try {
-        initClient(url, key);
-        const result = await testConnection();
-
-        if (!result.success) {
-          toast.error(result.error ?? t.toast.connectionError);
-          setIsConnected(false);
-          return;
-        }
-
-        localStorage.setItem('supabase_url', url);
-        localStorage.setItem('supabase_key', key);
-        setIsConnected(true);
-
         const user = await getCurrentUser();
         if (user) {
           setSection('app');
@@ -72,33 +50,27 @@ export default function App() {
         } else {
           setSection('auth');
         }
-
-        onAuthStateChange(async (authUser) => {
-          if (authUser) {
-            setSection('app');
-            setUserEmail(authUser.email ?? null);
-            await loadPayments();
-          } else {
-            setSection('auth');
-            setUserEmail(null);
-          }
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : t.common.unknownError;
-        toast.error(`${t.toast.connectionError}: ${message}`);
-        setIsConnected(false);
       } finally {
         setIsLoading(false);
       }
-    },
-    [loadPayments]
-  );
+    };
 
-  useEffect(() => {
-    if (savedUrl && savedKey) {
-      handleConnect(savedUrl, savedKey);
-    }
-  }, []);
+    checkUser();
+
+    const unsubscribe = onAuthStateChange(async (authUser) => {
+      if (authUser) {
+        setSection('app');
+        setUserEmail(authUser.email ?? null);
+        await loadPayments();
+      } else {
+        setSection('auth');
+        setUserEmail(null);
+        setPayments([]);
+      }
+    });
+
+    return unsubscribe;
+  }, [loadPayments]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -130,17 +102,6 @@ export default function App() {
     }
   };
 
-  const handleClearConfig = () => {
-    localStorage.removeItem('supabase_url');
-    localStorage.removeItem('supabase_key');
-    clearClient();
-    setSection('config');
-    setIsConnected(false);
-    setUserEmail(null);
-    setPayments([]);
-    toast.info(t.toast.configCleared);
-  };
-
   const handleAddPayment = async (payment: PaymentInsert) => {
     try {
       await insertPayment(payment);
@@ -163,6 +124,14 @@ export default function App() {
     }
   };
 
+  if (isLoading && section === 'auth') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">{t.common.loading}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Toaster position="top-right" richColors />
@@ -171,11 +140,6 @@ export default function App() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">{t.app.title}</h1>
           <div className="flex items-center gap-4">
-            <span
-              className={`text-sm ${isConnected ? 'text-green-600' : 'text-red-600'}`}
-            >
-              {isConnected ? t.common.connected : t.common.disconnected}
-            </span>
             {section === 'app' && userEmail && (
               <>
                 <span className="text-sm text-muted-foreground">{userEmail}</span>
@@ -189,19 +153,10 @@ export default function App() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {section === 'config' && (
-          <ConfigSection
-            onConnect={handleConnect}
-            savedUrl={savedUrl}
-            savedKey={savedKey}
-          />
-        )}
-
         {section === 'auth' && (
           <AuthSection
             onLogin={handleLogin}
             onGoogleLogin={handleGoogleLogin}
-            onBackToConfig={handleClearConfig}
             isLoading={isLoading}
           />
         )}
@@ -214,11 +169,6 @@ export default function App() {
               onDeletePayment={handleDeletePayment}
               isLoading={isLoadingPayments}
             />
-            <div className="flex justify-center">
-              <Button variant="ghost" size="sm" onClick={handleClearConfig}>
-                {t.app.clearConfig}
-              </Button>
-            </div>
           </div>
         )}
       </main>
