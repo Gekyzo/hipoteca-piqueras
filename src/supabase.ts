@@ -15,7 +15,7 @@ export async function signInWithGoogle(): Promise<{ error: string | null }> {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/hipoteca-piqueras/`,
     },
   });
 
