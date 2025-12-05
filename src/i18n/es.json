@@ -1,0 +1,67 @@
+{
+  "common": {
+    "error": "Error",
+    "unknownError": "Error desconocido",
+    "loading": "Cargando...",
+    "connected": "Conectado",
+    "disconnected": "Desconectado"
+  },
+  "app": {
+    "title": "Seguimiento de Hipoteca",
+    "logout": "Cerrar Sesión",
+    "clearConfig": "Borrar Configuración"
+  },
+  "config": {
+    "title": "Configuración",
+    "description": "Ingresa tus credenciales de Supabase",
+    "supabaseUrl": "Supabase URL",
+    "supabaseKey": "Clave Pública de Supabase",
+    "urlPlaceholder": "https://xxxxx.supabase.co",
+    "keyPlaceholder": "eyJhbGciOiJI...",
+    "saveAndConnect": "Guardar y Conectar"
+  },
+  "auth": {
+    "title": "Iniciar Sesión",
+    "description": "Inicia sesión para acceder a tus pagos",
+    "googleSignIn": "Iniciar sesión con Google",
+    "or": "o",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Tu contraseña",
+    "login": "Iniciar Sesión",
+    "loggingIn": "Iniciando sesión...",
+    "backToConfig": "Volver a Configuración"
+  },
+  "payments": {
+    "addTitle": "Agregar Pago",
+    "addDescription": "Registra un nuevo pago de hipoteca",
+    "historyTitle": "Historial de Pagos",
+    "loading": "Cargando pagos...",
+    "empty": "Aún no hay pagos. ¡Agrega uno arriba!",
+    "recorded": "pago registrado",
+    "recordedPlural": "pagos registrados",
+    "date": "Fecha",
+    "amount": "Monto",
+    "principal": "Principal",
+    "interest": "Interés",
+    "extraPayment": "Pago Extra",
+    "remainingBalance": "Saldo Restante",
+    "balance": "Saldo",
+    "paymentNumber": "Pago #",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas opcionales",
+    "add": "Agregar Pago",
+    "adding": "Agregando...",
+    "delete": "Eliminar"
+  },
+  "toast": {
+    "connectionError": "Error de conexión",
+    "loadPaymentsError": "Error al cargar pagos",
+    "loginSuccess": "¡Sesión iniciada!",
+    "logoutSuccess": "Sesión cerrada",
+    "configCleared": "Configuración borrada",
+    "paymentAdded": "¡Pago agregado!",
+    "paymentDeleted": "Pago eliminado"
+  }
+}

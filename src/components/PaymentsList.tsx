@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { t } from '@/i18n';
 import type { Payment } from '@/types';
 
 interface PaymentsListProps {
@@ -45,7 +46,7 @@ export function PaymentsList({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading payments...</p>
+          <p className="text-center text-muted-foreground">{t.payments.loading}</p>
         </CardContent>
       </Card>
     );
@@ -55,20 +56,21 @@ export function PaymentsList({
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">
-            No payments yet. Add one above!
-          </p>
+          <p className="text-center text-muted-foreground">{t.payments.empty}</p>
         </CardContent>
       </Card>
     );
   }
 
+  const recordedText =
+    payments.length === 1 ? t.payments.recorded : t.payments.recordedPlural;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Payment History</CardTitle>
+        <CardTitle>{t.payments.historyTitle}</CardTitle>
         <CardDescription>
-          {payments.length} payment{payments.length !== 1 ? 's' : ''} recorded
+          {payments.length} {recordedText}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -76,11 +78,11 @@ export function PaymentsList({
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">#</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead className="text-right">Principal</TableHead>
-              <TableHead className="text-right">Interest</TableHead>
-              <TableHead className="text-right">Balance</TableHead>
+              <TableHead>{t.payments.date}</TableHead>
+              <TableHead className="text-right">{t.payments.amount}</TableHead>
+              <TableHead className="text-right">{t.payments.principal}</TableHead>
+              <TableHead className="text-right">{t.payments.interest}</TableHead>
+              <TableHead className="text-right">{t.payments.balance}</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
@@ -109,7 +111,7 @@ export function PaymentsList({
                     size="sm"
                     onClick={() => onDeletePayment(payment.id)}
                   >
-                    Delete
+                    {t.payments.delete}
                   </Button>
                 </TableCell>
               </TableRow>

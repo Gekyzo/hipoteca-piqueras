@@ -9,6 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { t } from '@/i18n';
 
 interface ConfigSectionProps {
   onConnect: (url: string, key: string) => void;
@@ -34,33 +35,33 @@ export function ConfigSection({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Configuración</CardTitle>
-        <CardDescription>Ingresa tus credenciales de Supabase</CardDescription>
+        <CardTitle>{t.config.title}</CardTitle>
+        <CardDescription>{t.config.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="supabaseUrl">Supabase URL</Label>
+            <Label htmlFor="supabaseUrl">{t.config.supabaseUrl}</Label>
             <Input
               id="supabaseUrl"
               type="text"
-              placeholder="https://xxxxx.supabase.co"
+              placeholder={t.config.urlPlaceholder}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="supabaseKey">Clave Pública de Supabase</Label>
+            <Label htmlFor="supabaseKey">{t.config.supabaseKey}</Label>
             <Input
               id="supabaseKey"
               type="text"
-              placeholder="eyJhbGciOiJI..."
+              placeholder={t.config.keyPlaceholder}
               value={key}
               onChange={(e) => setKey(e.target.value)}
             />
           </div>
           <Button type="submit" className="w-full">
-            Guardar y Conectar
+            {t.config.saveAndConnect}
           </Button>
         </form>
       </CardContent>

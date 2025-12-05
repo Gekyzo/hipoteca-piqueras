@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { t } from '@/i18n';
 
 interface AuthSectionProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -37,8 +38,8 @@ export function AuthSection({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Iniciar Sesión</CardTitle>
-        <CardDescription>Inicia sesión para acceder a tus pagos</CardDescription>
+        <CardTitle>{t.auth.title}</CardTitle>
+        <CardDescription>{t.auth.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
@@ -66,7 +67,7 @@ export function AuthSection({
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Iniciar sesión con Google
+          {t.auth.googleSignIn}
         </Button>
 
         <div className="relative">
@@ -74,33 +75,33 @@ export function AuthSection({
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">o</span>
+            <span className="bg-card px-2 text-muted-foreground">{t.auth.or}</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Correo electrónico</Label>
+            <Label htmlFor="email">{t.auth.email}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="tu@ejemplo.com"
+              placeholder={t.auth.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password">{t.auth.password}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Tu contraseña"
+              placeholder={t.auth.passwordPlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {isLoading ? t.auth.loggingIn : t.auth.login}
           </Button>
         </form>
 
@@ -111,7 +112,7 @@ export function AuthSection({
           className="w-full"
           onClick={onBackToConfig}
         >
-          Volver a Configuración
+          {t.auth.backToConfig}
         </Button>
       </CardContent>
     </Card>

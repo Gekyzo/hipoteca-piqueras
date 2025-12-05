@@ -5,6 +5,7 @@ import { AuthSection } from '@/components/AuthSection';
 import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
 import { Button } from '@/components/ui/button';
+import { t } from '@/i18n';
 import type { Payment, PaymentInsert } from '@/types';
 import {
   initClient,
@@ -39,8 +40,8 @@ export default function App() {
       const data = await fetchPayments();
       setPayments(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      toast.error('Failed to load payments: ' + message);
+      const message = err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.toast.loadPaymentsError}: ${message}`);
     } finally {
       setIsLoadingPayments(false);
     }
@@ -54,7 +55,7 @@ export default function App() {
         const result = await testConnection();
 
         if (!result.success) {
-          toast.error(result.error ?? 'Connection failed');
+          toast.error(result.error ?? t.toast.connectionError);
           setIsConnected(false);
           return;
         }
@@ -83,8 +84,8 @@ export default function App() {
           }
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        toast.error('Connection failed: ' + message);
+        const message = err instanceof Error ? err.message : t.common.unknownError;
+        toast.error(`${t.toast.connectionError}: ${message}`);
         setIsConnected(false);
       } finally {
         setIsLoading(false);
@@ -106,7 +107,7 @@ export default function App() {
       if (error) {
         toast.error(error);
       } else {
-        toast.success('Logged in!');
+        toast.success(t.toast.loginSuccess);
       }
     } finally {
       setIsLoading(false);
@@ -125,7 +126,7 @@ export default function App() {
     if (error) {
       toast.error(error);
     } else {
-      toast.success('Logged out');
+      toast.success(t.toast.logoutSuccess);
     }
   };
 
@@ -137,28 +138,28 @@ export default function App() {
     setIsConnected(false);
     setUserEmail(null);
     setPayments([]);
-    toast.info('Configuration cleared');
+    toast.info(t.toast.configCleared);
   };
 
   const handleAddPayment = async (payment: PaymentInsert) => {
     try {
       await insertPayment(payment);
-      toast.success('Payment added!');
+      toast.success(t.toast.paymentAdded);
       await loadPayments();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      toast.error('Error: ' + message);
+      const message = err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.common.error}: ${message}`);
     }
   };
 
   const handleDeletePayment = async (id: string) => {
     try {
       await removePayment(id);
-      toast.success('Payment deleted');
+      toast.success(t.toast.paymentDeleted);
       await loadPayments();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      toast.error('Error: ' + message);
+      const message = err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.common.error}: ${message}`);
     }
   };
 
@@ -168,18 +169,18 @@ export default function App() {
 
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Hipoteca Tracker</h1>
+          <h1 className="text-2xl font-bold">{t.app.title}</h1>
           <div className="flex items-center gap-4">
             <span
               className={`text-sm ${isConnected ? 'text-green-600' : 'text-red-600'}`}
             >
-              {isConnected ? 'Connected' : 'Disconnected'}
+              {isConnected ? t.common.connected : t.common.disconnected}
             </span>
             {section === 'app' && userEmail && (
               <>
                 <span className="text-sm text-muted-foreground">{userEmail}</span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
-                  Logout
+                  {t.app.logout}
                 </Button>
               </>
             )}
@@ -215,7 +216,7 @@ export default function App() {
             />
             <div className="flex justify-center">
               <Button variant="ghost" size="sm" onClick={handleClearConfig}>
-                Clear Configuration
+                {t.app.clearConfig}
               </Button>
             </div>
           </div>

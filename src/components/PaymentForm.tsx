@@ -9,6 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { t } from '@/i18n';
 import type { PaymentInsert } from '@/types';
 
 interface PaymentFormProps {
@@ -67,14 +68,14 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add Payment</CardTitle>
-        <CardDescription>Record a new mortgage payment</CardDescription>
+        <CardTitle>{t.payments.addTitle}</CardTitle>
+        <CardDescription>{t.payments.addDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="paymentDate">Date *</Label>
+              <Label htmlFor="paymentDate">{t.payments.date} *</Label>
               <Input
                 id="paymentDate"
                 type="date"
@@ -84,7 +85,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
+              <Label htmlFor="amount">{t.payments.amount} *</Label>
               <Input
                 id="amount"
                 type="number"
@@ -96,7 +97,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="principal">Principal</Label>
+              <Label htmlFor="principal">{t.payments.principal}</Label>
               <Input
                 id="principal"
                 type="number"
@@ -107,7 +108,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="interest">Interest</Label>
+              <Label htmlFor="interest">{t.payments.interest}</Label>
               <Input
                 id="interest"
                 type="number"
@@ -118,7 +119,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="extraPayment">Extra Payment</Label>
+              <Label htmlFor="extraPayment">{t.payments.extraPayment}</Label>
               <Input
                 id="extraPayment"
                 type="number"
@@ -129,7 +130,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="remainingBalance">Remaining Balance</Label>
+              <Label htmlFor="remainingBalance">{t.payments.remainingBalance}</Label>
               <Input
                 id="remainingBalance"
                 type="number"
@@ -140,7 +141,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paymentNumber">Payment #</Label>
+              <Label htmlFor="paymentNumber">{t.payments.paymentNumber}</Label>
               <Input
                 id="paymentNumber"
                 type="number"
@@ -150,18 +151,18 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t.payments.notes}</Label>
               <Input
                 id="notes"
                 type="text"
-                placeholder="Optional notes"
+                placeholder={t.payments.notesPlaceholder}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Adding...' : 'Add Payment'}
+            {isLoading ? t.payments.adding : t.payments.add}
           </Button>
         </form>
       </CardContent>
