@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/i18n';
+import { calculateAmortizationSchedule } from '@/lib/amortization';
 import type { Payment, PaymentInsert, Mortgage, MortgageCondition, MortgageBonification } from '@/types';
 import {
   fetchPayments,
@@ -243,7 +244,15 @@ export default function App() {
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-6">
-              <PaymentForm onAddPayment={handleAddPayment} />
+              <PaymentForm
+                onAddPayment={handleAddPayment}
+                suggestedAmount={mortgage ? (() => {
+                  const schedule = calculateAmortizationSchedule(mortgage, conditions, bonifications);
+                  const nextPaymentNumber = payments.length + 1;
+                  const nextPayment = schedule.find(p => p.paymentNumber === nextPaymentNumber);
+                  return nextPayment?.totalPayment;
+                })() : undefined}
+              />
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">

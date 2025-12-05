@@ -8,23 +8,31 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import type { PaymentInsert } from '@/types';
 
 interface PaymentFormProps {
   onAddPayment: (payment: PaymentInsert) => Promise<void>;
+  suggestedAmount?: number;
   isLoading?: boolean;
 }
 
-export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProps) {
-  const [paymentDate, setPaymentDate] = useState('');
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount);
+}
+
+function getTodayDate(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+export function PaymentForm({ onAddPayment, suggestedAmount, isLoading = false }: PaymentFormProps) {
+  const [paymentDate, setPaymentDate] = useState(getTodayDate());
   const [amount, setAmount] = useState('');
-  const [principal, setPrincipal] = useState('');
-  const [interest, setInterest] = useState('');
-  const [extraPayment, setExtraPayment] = useState('');
-  const [remainingBalance, setRemainingBalance] = useState('');
-  const [paymentNumber, setPaymentNumber] = useState('');
   const [notes, setNotes] = useState('');
 
   const parseNumber = (value: string): number | null => {
@@ -44,26 +52,25 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
     const payment: PaymentInsert = {
       payment_date: paymentDate,
       amount: amountNum,
-      principal: parseNumber(principal),
-      interest: parseNumber(interest),
-      extra_payment: parseNumber(extraPayment),
-      remaining_balance: parseNumber(remainingBalance),
-      payment_number: parseNumber(paymentNumber),
+      principal: null,
+      interest: null,
+      extra_payment: null,
+      remaining_balance: null,
+      payment_number: null,
       notes: notes.trim() || null,
     };
 
     await onAddPayment(payment);
 
     // Clear form
-    setPaymentDate('');
+    setPaymentDate(getTodayDate());
     setAmount('');
-    setPrincipal('');
-    setInterest('');
-    setExtraPayment('');
-    setRemainingBalance('');
-    setPaymentNumber('');
     setNotes('');
   };
+
+  const amountPlaceholder = suggestedAmount
+    ? formatCurrency(suggestedAmount)
+    : '0.00';
 
   return (
     <Card>
@@ -73,7 +80,7 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="paymentDate">{t.payments.date} *</Label>
               <Input
@@ -90,76 +97,22 @@ export function PaymentForm({ onAddPayment, isLoading = false }: PaymentFormProp
                 id="amount"
                 type="number"
                 step="0.01"
-                placeholder="0.00"
+                placeholder={amountPlaceholder}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="principal">{t.payments.principal}</Label>
-              <Input
-                id="principal"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={principal}
-                onChange={(e) => setPrincipal(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="interest">{t.payments.interest}</Label>
-              <Input
-                id="interest"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={interest}
-                onChange={(e) => setInterest(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="extraPayment">{t.payments.extraPayment}</Label>
-              <Input
-                id="extraPayment"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={extraPayment}
-                onChange={(e) => setExtraPayment(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="remainingBalance">{t.payments.remainingBalance}</Label>
-              <Input
-                id="remainingBalance"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={remainingBalance}
-                onChange={(e) => setRemainingBalance(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="paymentNumber">{t.payments.paymentNumber}</Label>
-              <Input
-                id="paymentNumber"
-                type="number"
-                placeholder="1"
-                value={paymentNumber}
-                onChange={(e) => setPaymentNumber(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">{t.payments.notes}</Label>
-              <Input
-                id="notes"
-                type="text"
-                placeholder={t.payments.notesPlaceholder}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t.payments.notes}</Label>
+            <Textarea
+              id="notes"
+              placeholder={t.payments.notesPlaceholder}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+            />
           </div>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? t.payments.adding : t.payments.add}

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/i18n';
 import type { Mortgage, Payment, MortgageCondition, MortgageBonification, ConditionType, BonificationType } from '@/types';
-import { calculateTotalBonification } from '@/lib/amortization';
+import { calculateTotalBonification, calculateAmortizationSchedule } from '@/lib/amortization';
 
 interface MortgageInfoProps {
   mortgage: Mortgage | null;
@@ -180,7 +180,12 @@ export function MortgageInfo({
 
   const totalBonification = calculateTotalBonification(bonifications);
   const effectiveRate = Math.max(0, mortgage.interest_rate - totalBonification);
-  const effectiveMonthlyPayment = calculateMonthlyPayment(
+
+  // Calculate the amortization schedule to get accurate payment amounts
+  const schedule = calculateAmortizationSchedule(mortgage, conditions, bonifications);
+  const nextPaymentNumber = payments.length + 1;
+  const nextPayment = schedule.find(p => p.paymentNumber === nextPaymentNumber);
+  const effectiveMonthlyPayment = nextPayment?.totalPayment ?? calculateMonthlyPayment(
     mortgage.total_amount,
     effectiveRate,
     mortgage.term_months
