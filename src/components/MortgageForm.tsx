@@ -32,14 +32,17 @@ function calculateMonthlyPayment(
   );
 }
 
+type TermUnit = 'months' | 'years';
+
 export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termUnit, setTermUnit] = useState<TermUnit>('years');
   const [formData, setFormData] = useState({
     display_name: '',
     total_amount: '',
     interest_rate: '',
     start_date: new Date().toISOString().split('T')[0],
-    term_months: '',
+    term_value: '',
     notes: '',
   });
 
@@ -50,7 +53,8 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
     try {
       const totalAmount = parseFloat(formData.total_amount);
       const interestRate = parseFloat(formData.interest_rate);
-      const termMonths = parseInt(formData.term_months, 10);
+      const termValue = parseInt(formData.term_value, 10);
+      const termMonths = termUnit === 'years' ? termValue * 12 : termValue;
 
       const mortgage: MortgageInsert = {
         display_name: formData.display_name || null,
@@ -138,15 +142,35 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="term_months">Plazo (meses)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="term_value">
+                  Plazo ({termUnit === 'years' ? 'años' : 'meses'})
+                </Label>
+                <div className="flex items-center gap-2 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setTermUnit('months')}
+                    className={`px-2 py-1 rounded ${termUnit === 'months' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Meses
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTermUnit('years')}
+                    className={`px-2 py-1 rounded ${termUnit === 'years' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Años
+                  </button>
+                </div>
+              </div>
               <Input
-                id="term_months"
-                name="term_months"
+                id="term_value"
+                name="term_value"
                 type="number"
                 required
-                value={formData.term_months}
+                value={formData.term_value}
                 onChange={handleChange}
-                placeholder="360"
+                placeholder={termUnit === 'years' ? '30' : '360'}
               />
             </div>
           </div>
