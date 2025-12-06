@@ -17,6 +17,21 @@ interface MortgageFormProps {
   onCancel: () => void;
 }
 
+function calculateMonthlyPayment(
+  principal: number,
+  annualRate: number,
+  months: number
+): number {
+  if (annualRate === 0) {
+    return principal / months;
+  }
+  const monthlyRate = annualRate / 100 / 12;
+  return (
+    (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+    (Math.pow(1 + monthlyRate, months) - 1)
+  );
+}
+
 export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,7 +40,6 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
     interest_rate: '',
     start_date: new Date().toISOString().split('T')[0],
     term_months: '',
-    monthly_payment: '',
     notes: '',
   });
 
@@ -34,13 +48,17 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
     setIsSubmitting(true);
 
     try {
+      const totalAmount = parseFloat(formData.total_amount);
+      const interestRate = parseFloat(formData.interest_rate);
+      const termMonths = parseInt(formData.term_months, 10);
+
       const mortgage: MortgageInsert = {
         display_name: formData.display_name || null,
-        total_amount: parseFloat(formData.total_amount),
-        interest_rate: parseFloat(formData.interest_rate),
+        total_amount: totalAmount,
+        interest_rate: interestRate,
         start_date: formData.start_date,
-        term_months: parseInt(formData.term_months, 10),
-        monthly_payment: parseFloat(formData.monthly_payment),
+        term_months: termMonths,
+        monthly_payment: Math.round(calculateMonthlyPayment(totalAmount, interestRate, termMonths) * 100) / 100,
         notes: formData.notes || null,
       };
       await onSubmit(mortgage);
@@ -129,20 +147,6 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
                 value={formData.term_months}
                 onChange={handleChange}
                 placeholder="360"
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="monthly_payment">Cuota Mensual (EUR)</Label>
-              <Input
-                id="monthly_payment"
-                name="monthly_payment"
-                type="number"
-                step="0.01"
-                required
-                value={formData.monthly_payment}
-                onChange={handleChange}
-                placeholder="750"
               />
             </div>
           </div>
