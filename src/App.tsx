@@ -6,6 +6,7 @@ import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
 import { MortgageSelector } from '@/components/MortgageSelector';
 import { MortgageForm } from '@/components/MortgageForm';
+import { BonificationForm } from '@/components/BonificationForm';
 import { AmortizationSchedule } from '@/components/AmortizationSchedule';
 import { EarlyPayoffSimulator } from '@/components/EarlyPayoffSimulator';
 import { AmortizationRequests } from '@/components/AmortizationRequests';
@@ -27,6 +28,7 @@ import type {
   MortgageInsert,
   MortgageCondition,
   MortgageBonification,
+  MortgageBonificationInsert,
   MortgageShare,
   UserRole,
   AmortizationRequest,
@@ -40,6 +42,7 @@ import {
   fetchAmortizationRequests,
   insertPayment,
   insertMortgage,
+  insertMortgageBonification,
   removePayment,
   signIn,
   signInWithGoogle,
@@ -59,6 +62,7 @@ export default function App() {
   const [mortgages, setMortgages] = useState<Mortgage[]>([]);
   const [selectedMortgageId, setSelectedMortgageId] = useState<string | null>(null);
   const [showMortgageForm, setShowMortgageForm] = useState(false);
+  const [showBonificationForm, setShowBonificationForm] = useState(false);
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
   const [bonifications, setBonifications] = useState<MortgageBonification[]>(
     []
@@ -255,6 +259,23 @@ export default function App() {
     setSelectedMortgageId(mortgageId);
   };
 
+  const handleCreateBonification = async (
+    bonification: MortgageBonificationInsert
+  ) => {
+    try {
+      await insertMortgageBonification(bonification);
+      toast.success('Bonificación añadida');
+      setShowBonificationForm(false);
+      if (selectedMortgageId) {
+        await loadMortgageDetails(selectedMortgageId);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.common.error}: ${message}`);
+    }
+  };
+
   const handleRefreshMortgage = async () => {
     if (selectedMortgageId) {
       await loadMortgageDetails(selectedMortgageId);
@@ -315,7 +336,15 @@ export default function App() {
           />
         )}
 
-        {section === 'app' && !showMortgageForm && (
+        {section === 'app' && showBonificationForm && selectedMortgageId && (
+          <BonificationForm
+            mortgageId={selectedMortgageId}
+            onSubmit={handleCreateBonification}
+            onCancel={() => setShowBonificationForm(false)}
+          />
+        )}
+
+        {section === 'app' && !showMortgageForm && !showBonificationForm && (
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as TabValue)}
@@ -361,6 +390,7 @@ export default function App() {
                 userRole={userRole}
                 isLoading={isLoadingMortgage}
                 onNewPayment={() => setActiveTab('payments')}
+                onAddBonification={() => setShowBonificationForm(true)}
               />
             </TabsContent>
 

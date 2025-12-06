@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -32,6 +33,7 @@ interface MortgageInfoProps {
   userRole: UserRole;
   isLoading?: boolean;
   onNewPayment?: () => void;
+  onAddBonification?: () => void;
 }
 
 function formatCurrency(amount: number): string {
@@ -181,6 +183,7 @@ export function MortgageInfo({
   userRole,
   isLoading = false,
   onNewPayment,
+  onAddBonification,
 }: MortgageInfoProps) {
   if (isLoading) {
     return (
@@ -472,13 +475,25 @@ export function MortgageInfo({
           </>
         )}
 
-        {bonifications.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <p className="text-sm font-medium mb-3">
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium">
                 {t.mortgage.bonifications.title}
               </p>
+              {onAddBonification && (
+                <Button
+                  onClick={onAddBonification}
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {bonifications.length > 0 ? (
               <div className="space-y-2">
                 {bonifications.map((bonification) => (
                   <div
@@ -524,9 +539,13 @@ export function MortgageInfo({
                   </div>
                 )}
               </div>
-            </div>
-          </>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t.mortgage.bonifications.noBonifications}
+              </p>
+            )}
+          </div>
+        </>
 
         {mortgage.notes && (
           <>

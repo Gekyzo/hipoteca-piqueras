@@ -2,7 +2,9 @@
   "common": {
     "error": "Error",
     "unknownError": "Error desconocido",
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "saving": "Guardando..."
   },
   "app": {
     "title": "Seguimiento de Hipoteca",
@@ -96,6 +98,16 @@
       "inactive": "Inactiva",
       "effectiveRate": "Tasa Efectiva",
       "totalReduction": "Reducción Total",
+      "addTitle": "Nueva Bonificación",
+      "addDescription": "Añade una bonificación para reducir la tasa de interés",
+      "type": "Tipo de Bonificación",
+      "selectType": "Seleccionar tipo",
+      "rateReduction": "Reducción de Tasa (%)",
+      "rateReductionHint": "Ej: 0.15 para una reducción de -0.15%",
+      "descriptionLabel": "Descripción (opcional)",
+      "descriptionPlaceholder": "Descripción adicional",
+      "isActive": "Bonificación activa",
+      "addButton": "Añadir Bonificación",
       "types": {
         "payroll": "Domiciliación de Nómina",
         "home_insurance": "Seguro de Hogar",
