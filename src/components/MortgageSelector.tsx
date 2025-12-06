@@ -17,6 +17,10 @@ interface MortgageSelectorProps {
 }
 
 function formatMortgageLabel(mortgage: Mortgage): string {
+  if (mortgage.display_name) {
+    return mortgage.display_name;
+  }
+
   const amount = new Intl.NumberFormat('es-ES', {
     style: 'currency',
     currency: 'EUR',

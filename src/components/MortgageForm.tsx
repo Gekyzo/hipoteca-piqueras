@@ -20,6 +20,7 @@ interface MortgageFormProps {
 export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    display_name: '',
     total_amount: '',
     interest_rate: '',
     start_date: new Date().toISOString().split('T')[0],
@@ -34,6 +35,7 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
 
     try {
       const mortgage: MortgageInsert = {
+        display_name: formData.display_name || null,
         total_amount: parseFloat(formData.total_amount),
         interest_rate: parseFloat(formData.interest_rate),
         start_date: formData.start_date,
@@ -64,6 +66,18 @@ export function MortgageForm({ onSubmit, onCancel }: MortgageFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="display_name">Nombre</Label>
+            <Input
+              id="display_name"
+              name="display_name"
+              type="text"
+              value={formData.display_name}
+              onChange={handleChange}
+              placeholder="Mi hipoteca principal"
+            />
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="total_amount">Monto Total (EUR)</Label>

@@ -17,6 +17,7 @@ export type PaymentInsert = Omit<Payment, 'id' | 'user_id' | 'created_at'>;
 export interface Mortgage {
   id: string;
   user_id: string;
+  display_name: string | null;
   total_amount: number;
   interest_rate: number;
   start_date: string;

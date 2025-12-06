@@ -64,6 +64,7 @@ CREATE INDEX idx_payments_date ON payments(payment_date DESC);
 CREATE TABLE mortgages (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) NOT NULL,                              -- Usuario propietario del registro
+  display_name TEXT,                                                            -- Nombre para mostrar en el selector
   total_amount DECIMAL(12, 2) NOT NULL,                                         -- Monto total de la hipoteca
   interest_rate DECIMAL(5, 3) NOT NULL,                                         -- Tasa de interés anual (ej: 3.500)
   start_date DATE NOT NULL,                                                     -- Fecha de inicio de la hipoteca
@@ -73,6 +74,9 @@ CREATE TABLE mortgages (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),                            -- Fecha de creación del registro
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()                             -- Fecha de última actualización
 );
+
+-- Migration: Add display_name column to existing mortgages table
+-- ALTER TABLE mortgages ADD COLUMN display_name TEXT;
 
 -- Enable Row Level Security for mortgages
 ALTER TABLE mortgages ENABLE ROW LEVEL SECURITY;
