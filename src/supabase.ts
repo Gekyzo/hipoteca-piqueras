@@ -136,11 +136,23 @@ export async function removePayment(id: string): Promise<void> {
 }
 
 // Mortgage functions
-export async function fetchMortgage(): Promise<Mortgage | null> {
+export async function fetchMortgages(): Promise<Mortgage[]> {
   const { data, error } = await supabaseClient
     .from('mortgages')
     .select('*')
-    .limit(1)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+  return (data as Mortgage[]) ?? [];
+}
+
+export async function fetchMortgage(id: string): Promise<Mortgage | null> {
+  const { data, error } = await supabaseClient
+    .from('mortgages')
+    .select('*')
+    .eq('id', id)
     .single();
 
   if (error) {

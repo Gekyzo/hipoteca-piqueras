@@ -4,6 +4,8 @@ import { AuthSection } from '@/components/AuthSection';
 import { PaymentForm } from '@/components/PaymentForm';
 import { PaymentsList } from '@/components/PaymentsList';
 import { MortgageInfo } from '@/components/MortgageInfo';
+import { MortgageSelector } from '@/components/MortgageSelector';
+import { MortgageForm } from '@/components/MortgageForm';
 import { AmortizationSchedule } from '@/components/AmortizationSchedule';
 import { EarlyPayoffSimulator } from '@/components/EarlyPayoffSimulator';
 import { AmortizationRequests } from '@/components/AmortizationRequests';
@@ -22,6 +24,7 @@ import type {
   Payment,
   PaymentInsert,
   Mortgage,
+  MortgageInsert,
   MortgageCondition,
   MortgageBonification,
   MortgageShare,
@@ -30,12 +33,13 @@ import type {
 } from '@/types';
 import {
   fetchPayments,
-  fetchMortgage,
+  fetchMortgages,
   fetchMortgageConditions,
   fetchMortgageBonifications,
   fetchMortgageShares,
   fetchAmortizationRequests,
   insertPayment,
+  insertMortgage,
   removePayment,
   signIn,
   signInWithGoogle,
@@ -52,7 +56,9 @@ export default function App() {
   const [section, setSection] = useState<AppSection>('auth');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [mortgage, setMortgage] = useState<Mortgage | null>(null);
+  const [mortgages, setMortgages] = useState<Mortgage[]>([]);
+  const [selectedMortgageId, setSelectedMortgageId] = useState<string | null>(null);
+  const [showMortgageForm, setShowMortgageForm] = useState(false);
   const [conditions, setConditions] = useState<MortgageCondition[]>([]);
   const [bonifications, setBonifications] = useState<MortgageBonification[]>(
     []
@@ -66,6 +72,8 @@ export default function App() {
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingMortgage, setIsLoadingMortgage] = useState(false);
   const [activeTab, setActiveTab] = useState<TabValue>('mortgage');
+
+  const mortgage = mortgages.find((m) => m.id === selectedMortgageId) ?? null;
 
   const loadPayments = useCallback(async () => {
     setIsLoadingPayments(true);
@@ -81,32 +89,19 @@ export default function App() {
     }
   }, []);
 
-  const loadMortgage = useCallback(async () => {
+  const loadMortgages = useCallback(async () => {
     setIsLoadingMortgage(true);
     try {
       const [data, role] = await Promise.all([
-        fetchMortgage(),
+        fetchMortgages(),
         getCurrentUserRole(),
       ]);
-      setMortgage(data);
+      setMortgages(data);
       setUserRole(role);
-      if (data) {
-        const [conditionsData, bonificationsData, sharesData, requestsData] =
-          await Promise.all([
-            fetchMortgageConditions(data.id),
-            fetchMortgageBonifications(data.id),
-            fetchMortgageShares(data.id),
-            fetchAmortizationRequests(data.id),
-          ]);
-        setConditions(conditionsData);
-        setBonifications(bonificationsData);
-        setShares(sharesData);
-        setAmortizationRequests(requestsData);
-      } else {
-        setConditions([]);
-        setBonifications([]);
-        setShares([]);
-        setAmortizationRequests([]);
+
+      // Auto-select first mortgage if none selected
+      if (data.length > 0 && !selectedMortgageId) {
+        setSelectedMortgageId(data[0].id);
       }
     } catch (err) {
       const message =
@@ -115,7 +110,39 @@ export default function App() {
     } finally {
       setIsLoadingMortgage(false);
     }
+  }, [selectedMortgageId]);
+
+  const loadMortgageDetails = useCallback(async (mortgageId: string) => {
+    try {
+      const [conditionsData, bonificationsData, sharesData, requestsData] =
+        await Promise.all([
+          fetchMortgageConditions(mortgageId),
+          fetchMortgageBonifications(mortgageId),
+          fetchMortgageShares(mortgageId),
+          fetchAmortizationRequests(mortgageId),
+        ]);
+      setConditions(conditionsData);
+      setBonifications(bonificationsData);
+      setShares(sharesData);
+      setAmortizationRequests(requestsData);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.toast.loadMortgageError}: ${message}`);
+    }
   }, []);
+
+  // Load mortgage details when selected mortgage changes
+  useEffect(() => {
+    if (selectedMortgageId) {
+      loadMortgageDetails(selectedMortgageId);
+    } else {
+      setConditions([]);
+      setBonifications([]);
+      setShares([]);
+      setAmortizationRequests([]);
+    }
+  }, [selectedMortgageId, loadMortgageDetails]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -124,7 +151,7 @@ export default function App() {
         if (user) {
           setSection('app');
           setUserEmail(user.email ?? null);
-          await Promise.all([loadPayments(), loadMortgage()]);
+          await Promise.all([loadPayments(), loadMortgages()]);
         } else {
           setSection('auth');
         }
@@ -139,12 +166,13 @@ export default function App() {
       if (authUser) {
         setSection('app');
         setUserEmail(authUser.email ?? null);
-        await Promise.all([loadPayments(), loadMortgage()]);
+        await Promise.all([loadPayments(), loadMortgages()]);
       } else {
         setSection('auth');
         setUserEmail(null);
         setPayments([]);
-        setMortgage(null);
+        setMortgages([]);
+        setSelectedMortgageId(null);
         setConditions([]);
         setBonifications([]);
         setShares([]);
@@ -153,7 +181,7 @@ export default function App() {
     });
 
     return unsubscribe;
-  }, [loadPayments, loadMortgage]);
+  }, [loadPayments, loadMortgages]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -209,6 +237,30 @@ export default function App() {
     }
   };
 
+  const handleCreateMortgage = async (mortgageData: MortgageInsert) => {
+    try {
+      const newMortgage = await insertMortgage(mortgageData);
+      toast.success('Hipoteca creada');
+      setShowMortgageForm(false);
+      await loadMortgages();
+      setSelectedMortgageId(newMortgage.id);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : t.common.unknownError;
+      toast.error(`${t.common.error}: ${message}`);
+    }
+  };
+
+  const handleSelectMortgage = (mortgageId: string) => {
+    setSelectedMortgageId(mortgageId);
+  };
+
+  const handleRefreshMortgage = async () => {
+    if (selectedMortgageId) {
+      await loadMortgageDetails(selectedMortgageId);
+    }
+  };
+
   if (isLoading && section === 'auth') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -229,7 +281,13 @@ export default function App() {
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {section === 'app' && userEmail && (
               <>
-                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+                <MortgageSelector
+                  mortgages={mortgages}
+                  selectedMortgageId={selectedMortgageId}
+                  onSelectMortgage={handleSelectMortgage}
+                  onCreateMortgage={() => setShowMortgageForm(true)}
+                />
+                <span className="text-xs sm:text-sm text-muted-foreground hidden lg:inline">
                   {userEmail}
                 </span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -250,13 +308,20 @@ export default function App() {
           />
         )}
 
-        {section === 'app' && (
+        {section === 'app' && showMortgageForm && (
+          <MortgageForm
+            onSubmit={handleCreateMortgage}
+            onCancel={() => setShowMortgageForm(false)}
+          />
+        )}
+
+        {section === 'app' && !showMortgageForm && (
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as TabValue)}
             className="space-y-6"
           >
-            {/* Mobile: Select dropdown */}
+            {/* Mobile: Select dropdown for tabs */}
             <div className="sm:hidden">
               <Select
                 value={activeTab}
@@ -276,6 +341,7 @@ export default function App() {
                 </SelectContent>
               </Select>
             </div>
+
             {/* Desktop: TabsList */}
             <TabsList className="hidden sm:grid w-full grid-cols-5 max-w-2xl">
               <TabsTrigger value="mortgage">{t.app.tabMortgage}</TabsTrigger>
@@ -344,7 +410,7 @@ export default function App() {
                 <AmortizationRequests
                   requests={amortizationRequests}
                   shares={shares}
-                  onRequestUpdated={loadMortgage}
+                  onRequestUpdated={handleRefreshMortgage}
                 />
               )}
               <EarlyPayoffSimulator
@@ -355,7 +421,7 @@ export default function App() {
                 userRole={userRole}
                 currentPaymentsMade={payments.length}
                 pendingRequests={amortizationRequests}
-                onAmortizationRecorded={loadMortgage}
+                onAmortizationRecorded={handleRefreshMortgage}
               />
             </TabsContent>
           </Tabs>
