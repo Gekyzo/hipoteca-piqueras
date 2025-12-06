@@ -252,17 +252,15 @@ export function MortgageInfo({
   // Calculate user-specific debt if shares are configured
   const userInitialDebt = userShare?.initial_share_amount ?? 0;
   const userAmortized = userShare?.amortized_amount ?? 0;
-  // User's remaining debt = (their share percentage * remaining mortgage balance) - their amortizations
   const userSharePercentage = userShare?.initial_share_percentage ?? 0;
+  // User's remaining debt = their fixed initial share minus their amortizations
+  // This is independent of regular mortgage payments - only early amortizations reduce it
   const userRemainingDebt = hasShares
-    ? Math.max(
-        0,
-        (remainingBalance * userSharePercentage) / 100 - userAmortized
-      )
+    ? Math.max(0, userInitialDebt - userAmortized)
     : remainingBalance;
   const userProgressPercent =
     hasShares && userInitialDebt > 0
-      ? ((userInitialDebt - userRemainingDebt) / userInitialDebt) * 100
+      ? (userAmortized / userInitialDebt) * 100
       : progressPercent;
 
   return (

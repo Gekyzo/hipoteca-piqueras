@@ -142,11 +142,10 @@ export function EarlyPayoffSimulator({
   const userInitialDebt =
     userShare?.initial_share_amount ?? mortgage.total_amount;
   const userAmortized = userShare?.amortized_amount ?? 0;
+  // User's remaining debt = their fixed initial share minus their amortizations
+  // This is independent of regular mortgage payments - only early amortizations reduce it
   const userRemainingDebt = hasShares
-    ? Math.max(
-        0,
-        (remainingBalance * userSharePercentage) / 100 - userAmortized
-      )
+    ? Math.max(0, userInitialDebt - userAmortized)
     : remainingBalance;
 
   // Generate payment options for dropdown
